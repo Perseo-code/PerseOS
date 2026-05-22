@@ -1,8 +1,0 @@
-Hi! There are some things i need to say out loud.
-First of all, for all those newbies, PLEASE, compile every .c and .h file.
-You can just run make to compile everything. But make sure that you erase the kernel.elf file,
-that can be easily deleted with make clean.
-
-More help will be provided.
-If there's anything that isn't documented, please let me know in github's issues
-URL to my github repository: https://github.com/Pygramer78/PerseOS

@@ -1,7 +1,5 @@
-#include "rtl8139.h"
-#include <io/io.h>
-#include <stdint.h>
-#include <string.h> // for memcpy
+#include <rtl8139/rtl8139.h>
+
 
 #define RX_BUFFER_SIZE 8192 + 16 + 1500
 

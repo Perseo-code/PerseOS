@@ -8,6 +8,7 @@ This is way harder to explain than any other module that i made.
 */
 
 // Structures
+
 typedef struct {
     uint16_t offset_low;
     uint16_t selector;

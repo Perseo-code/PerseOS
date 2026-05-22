@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>  // For uint32_t
-
+#include <idt/idt.h>
 // Timer frequency in Hz (typically 18.2Hz for PIT)
 #define TIMER_FREQUENCY  1193180  // PIT frequency
 
