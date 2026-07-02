@@ -1,20 +1,24 @@
-ENTRY(_start) /*Donde debe comenzar el archivo*/
+ENTRY(_start) /*The entry point*/
 SECTIONS {
     . = 0x100000;
+    .multiboot {
+        *(.multiboot*) /*Where we save all multiboot headers*/
+    }
+
     .text : ALIGN(4096) {
-        *(.text*) /*Alojamiento para todas las instrucciones ejecutables*/
+        *(.text*) /*Where we save all executable instructions*/
     }
 
     .data : ALIGN(4096){
-        *(.data) /*Alojamiento para todas las variables inicializadas*/
+        *(.data) /*Where all initialized variables reside*/
     }
 
     .bss : ALIGN(4096) {
-        *(COMMON*) /*Alojamiento para bytes reservados*/
+        *(COMMON*) /*Where all the reserved memory will be in*/
         *(.bss)
     }
 
     .rodata : ALIGN(4096){
-        *(.rodata*) /*Alojamiento de variables constantes*/
+        *(.rodata*) /*Where constant data is stored*/
     }
 }
