@@ -1,7 +1,7 @@
 ENTRY(_start) /*The entry point*/
 SECTIONS {
     . = 0x100000;
-    .multiboot {
+    .multiboot : {
         *(.multiboot*) /*Where we save all multiboot headers*/
     }
 
