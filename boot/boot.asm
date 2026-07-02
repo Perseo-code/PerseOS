@@ -6,5 +6,6 @@ global _start
 extern kernel_main
 
 _start:
-    mov rsp, stack_top
+    mov esp, stack_top
     call kernel_main
+    hlt
