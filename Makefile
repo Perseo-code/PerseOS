@@ -10,8 +10,9 @@ ASMFLAGS    := -f elf64
 
 BUILD_DIR   := build
 ISO_DIR     := iso
+DIST_DIR	:= dist
 KERNEL_ELF  := $(BUILD_DIR)/kernel.elf
-ISO_IMAGE   := $(ISO_DIR)/PerseOS.iso
+ISO_IMAGE   := $(DIST_DIR)/PerseOS.iso
 
 # ===== Fuentes =====
 CPP_SOURCES   := $(shell find kernel -name "*.cpp")
@@ -48,7 +49,7 @@ $(ISO_IMAGE): $(KERNEL_ELF)
 
 # ----- Execute -----
 run: $(ISO_IMAGE)
-	qemu-system-x86 -cdrom $(ISO_IMAGE) -no-reboot -d int
+	qemu-system-x86_64 -cdrom $(ISO_IMAGE) -no-reboot -d int
 
 
 # ----- Clean -----
