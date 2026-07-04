@@ -1,10 +1,10 @@
 # Config
-CPPC          := x86_64-elf-g++
+CPPC        := x86_64-elf-g++
 CC			:= x86_64-elf-gcc
 LD          := x86_64-elf-ld
 ASM         := nasm
 
-CPPFLAGS      := -ffreestanding -g -O0 -fno-exceptions -fno-rtti
+CPPFLAGS      := -ffreestanding -g -O0 -fno-exceptions -fno-rtti -Iinclude
 LDFLAGS     := -T linker/linker.ld
 ASMFLAGS    := -f elf64
 
@@ -15,7 +15,7 @@ KERNEL_ELF  := $(BUILD_DIR)/kernel.elf
 ISO_IMAGE   := $(DIST_DIR)/PerseOS.iso
 
 # ===== Fuentes =====
-CPP_SOURCES   := $(shell find kernel -name "*.cpp")
+CPP_SOURCES   := $(shell find kernel src -name "*.cpp")
 ASM_SOURCES := $(shell find boot -name "*.asm")
 
 OBJECTS := \
@@ -55,5 +55,6 @@ run: $(ISO_IMAGE)
 # ----- Clean -----
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR)/kernel.elf
+	rm -rf $(ISO_IMAGE)
 
 .PHONY: all run clean

@@ -1,3 +1,5 @@
+BITS 32
+
 section .bss
 stack_bottom: resb 16384
 stack_top:
@@ -7,7 +9,8 @@ extern kernel_main
 
 _start:
     mov esp, stack_top
-    call kernel_main
+    ;call kernel_main
+    mov word [0xB8000], 0x0741    ; White 'A
 
 .loop:
     ; hlt
