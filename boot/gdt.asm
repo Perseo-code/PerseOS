@@ -41,7 +41,7 @@
 ; 1 = Code segment (Executable)
 
 ; Bit 2: DC (Direction / Conforming)
-; These bytes have two meanings, depending on wether the descriptor is a code segment or a data segment:
+; This bit has two meanings, depending on wether the descriptor is a code segment or a data segment:
 ; If it is a data segments (E = 0):
 ; It's called the direction bit:
 ; - 0 = Addresses grow upward (Normal)
