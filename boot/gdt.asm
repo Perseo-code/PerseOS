@@ -107,19 +107,24 @@
 ; Base = 000000
 ; Limit = FFFF
 ; 00 CF 92 00 00 0F FF F0
+; Since this version doesn't support 64-bit, both flags must be 0xC
+; The code descriptor must end up like this 0x00CF9A000000FFFF
+; The data descriptor doesn't change
 section .rodata
-
-gdt64:
+%include "gdt.inc"
+global gdt
+global gdt_descriptor
+gdt:
     dq 0 ; Null descriptor
 
-    ; 64 bit code descriptor
-    dq 0x00AF9A0000FFFF
+    ; 32 bit code descriptor
+    dq 0x00CF9A000000FFFF
 
     ; Data descriptor
     dq 0x00CF92000000FFFF
 
-gdt64_end:
+gdt_end:
 
-gdt64_descriptor:
-    dw gdt64_end - gdt64 - 1
-    dq gdt64
+gdt_descriptor:
+    dw gdt_end - gdt - 1
+    dd gdt

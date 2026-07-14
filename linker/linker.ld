@@ -1,24 +1,31 @@
-ENTRY(_start) /*The entry point*/
-SECTIONS {
+ENTRY(_start)
+
+SECTIONS
+{
     . = 0x100000;
+
     .multiboot : {
-        *(.multiboot*) /*Where we save all multiboot headers*/
+        *(.multiboot*)
     }
 
-    .text : ALIGN(4096) {
-        *(.text*) /*Where we save all executable instructions*/
+    .text ALIGN(4096) : {
+        *(.text*)
     }
 
-    .data : ALIGN(4096){
-        *(.data) /*Where all initialized variables reside*/
+    .rodata ALIGN(4096) : {
+        *(.rodata*)
     }
 
-    .bss : ALIGN(4096) {
-        *(COMMON*) /*Where all the reserved memory will be in*/
-        *(.bss)
+    .data ALIGN(4096) : {
+        *(.data*)
     }
 
-    .rodata : ALIGN(4096){
-        *(.rodata*) /*Where constant data is stored*/
+    /*.paging 0x5000 : {
+        *(.paging*)
+    }*/
+    
+    .bss ALIGN(4096) : {
+        *(COMMON)
+        *(.bss*)
     }
 }

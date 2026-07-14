@@ -5,7 +5,8 @@ align 8 ; We have to align the multiboot section exactly 8 bytes
 %define MAGIC 0xE85250D6
 %define HEADER_LENGTH 0x18
 %define ARCH 0
-%define CHECKSUM -(MAGIC + ARCH + HEADER_LENGTH)
+%define CHECKSUM (-(MAGIC + ARCH + HEADER_LENGTH) & 0xFFFFFFFF)
+
 
 ; Write them inside the sector
 dd MAGIC

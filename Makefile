@@ -1,12 +1,12 @@
 # Config
-CPPC        := x86_64-elf-g++
-CC			:= x86_64-elf-gcc
-LD          := x86_64-elf-ld
+CPPC        := clang++
+CC			:= clang
+LD          := ld.lld
 ASM         := nasm
 
-CPPFLAGS      := -ffreestanding -g -O0 -fno-exceptions -fno-rtti -Iinclude
+CPPFLAGS      := --target=i686-unknown-elf -ffreestanding -fno-exceptions -fno-rtti -Iinclude
 LDFLAGS     := -T linker/linker.ld
-ASMFLAGS    := -f elf64
+ASMFLAGS    := -Iboot/ -f elf32
 
 BUILD_DIR   := build
 ISO_DIR     := iso
