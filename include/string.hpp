@@ -2,10 +2,10 @@
 #include <stdint.hpp>
 class string {
 private:
-    char* text;
+    const char* text;
     uint32_t length;
 public:
-    string(char* str) {
+    string(const char* str) {
         length = 0;
         while (str[length] != '\0')
             length++;
@@ -13,18 +13,22 @@ public:
         text = str;
     }
 
-    // Constructor por defecto (para poder hacer: string miTexto;)
-    string() : text("") {}
+    string() : text(""), length(0) {}
 
-    string& operator=(char* newValue) { // We create this operator so when you do string name = "something", the text is saved in the text variable
-        text = newValue;
-        return *this;
+    string& operator=(const char* newValue) { // We create this operator so when you do string name = "something", the text is saved in the text variable
+            text = newValue;
+
+            length = 0;
+            while (newValue[length] != '\0')
+                length++;
+
+            return *this;
     }
 
-    uint32_t getSize() {return length;};
-    char get(uint32_t index) {return text[index];}
-    operator char*() const {
+    uint32_t getSize() const {return length;};
+    char get(uint32_t index) const {return text[index];}
+    operator const char*() const {
             return text; // To make the text represent the variable
-    }
+    };
     
 };
