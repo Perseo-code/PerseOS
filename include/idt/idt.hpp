@@ -1,22 +1,28 @@
-/*#pragma once
+#pragma once
 #include <stdint.hpp>
 
-struct idt_entry_struct {
-    uint16_t base_lo; // Offset 0-15
-    uint16_t sel; // Segment selector
-    uint8_t always0; // Always Zero. Literally
-    uint8_t flags; // Types and privileges
-    uint16_t base_hi; // Offset 16-31
+struct IDTEntry { // Similar to the GDT
+    uint16_t offset_low;
+    uint16_t selector;
+    uint8_t  zero; // Same structure as the segments
+    uint8_t  flags;
+    uint16_t offset_high;
 } __attribute__((packed));
 
-struct idt_ptr_struct {
+struct IDTR {
     uint16_t limit; // Table size in bytes - 1
     uint32_t base; // Lineal idt direction
 } __attribute__((packed));
 
-extern void idt_load(uint32_t);
 
-idt_ptr_struct idt_ptr;
-idt_entry_struct idt_entry;
+extern IDTEntry idt[256];
+static IDTR idtr;
+void idt_set_gate(
+    uint8_t vector,
+    uint32_t handler,
+    uint16_t selector,
+    uint8_t flags);
+
+
 void idt_init();
-*/
+extern "C" void idt_load(IDTR*);
