@@ -1,27 +1,31 @@
 ENTRY(_start)
 
-SECTIONS {
-    . = 1M;
+SECTIONS
+{
+    . = 0x100000;
 
     .multiboot : {
-        KEEP(*(.multiboot))
+        *(.multiboot*)
     }
 
-    .text : {
+    .text ALIGN(4096) : {
         *(.text*)
     }
 
-    .rodata : {
+    .rodata ALIGN(4096) : {
         *(.rodata*)
     }
 
-    .data : {
+    .data ALIGN(4096) : {
         *(.data*)
     }
 
-    .bss : {
+    /*.paging 0x5000 : {
+        *(.paging*)
+    }*/
+    
+    .bss ALIGN(4096) : {
         *(COMMON)
         *(.bss*)
     }
 }
-

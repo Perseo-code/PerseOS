@@ -1,42 +1,41 @@
-# ===== Configuración =====
-ARCH        := i386
-CC          := clang
+# Config
+CPPC        := clang++
+CC			:= clang
 LD          := ld.lld
 ASM         := nasm
 
-CFLAGS      := -target i386-pc-none-elf -m32 -ffreestanding -fno-stack-protector \
-               -fno-pie -fno-builtin -nostdlib -nostdinc -Wall -Wextra \
-               -Iinclude -Isrc -Idrivers -Inet
-LDFLAGS     := -m elf_i386 -T linker/linker.ld
-ASMFLAGS    := -f elf32
+CPPFLAGS      := --target=i686-unknown-elf -ffreestanding -fno-exceptions -fno-rtti -Iinclude
+LDFLAGS     := -T linker/linker.ld
+ASMFLAGS    := -Iboot/ -f elf32
 
 BUILD_DIR   := build
 ISO_DIR     := iso
+DIST_DIR	:= dist
 KERNEL_ELF  := $(BUILD_DIR)/kernel.elf
-ISO_IMAGE   := $(BUILD_DIR)/os.iso
+ISO_IMAGE   := $(DIST_DIR)/PerseOS.iso
 
 # ===== Fuentes =====
-C_SOURCES   := $(shell find kernel src include drivers -name "*.c")
-ASM_SOURCES := $(shell find boot include -name "*.asm")
+CPP_SOURCES   := $(shell find kernel src -name "*.cpp")
+ASM_SOURCES := $(shell find boot -name "*.asm")
 
 OBJECTS := \
-  $(C_SOURCES:%.c=$(BUILD_DIR)/%.o) \
+  $(CPP_SOURCES:%.cpp=$(BUILD_DIR)/%.o) \
   $(ASM_SOURCES:%.asm=$(BUILD_DIR)/%.o)
 
 # ===== Targets =====
 all: $(ISO_IMAGE)
 
-# ----- Compile C -----
-$(BUILD_DIR)/%.o: %.c
+# ----- Compile C++ -----
+$(BUILD_DIR)/%.o: %.cpp
 	@mkdir -p $(dir $@)
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CPPC) $(CPPFLAGS) -c $< -o $@
 
 # ----- Compile ASM -----
 $(BUILD_DIR)/%.o: %.asm
 	@mkdir -p $(dir $@)
 	$(ASM) $(ASMFLAGS) $< -o $@
 
-# ----- Linkear kernel -----
+# ----- Link kernel -----
 BOOT_OBJ := $(BUILD_DIR)/boot/multiboot.o
 
 $(KERNEL_ELF): $(OBJECTS)
@@ -50,11 +49,12 @@ $(ISO_IMAGE): $(KERNEL_ELF)
 
 # ----- Execute -----
 run: $(ISO_IMAGE)
-	qemu-system-i386 -cdrom $(ISO_IMAGE) -no-reboot -d int
+	qemu-system-x86_64 -cdrom $(ISO_IMAGE) -no-reboot -d int
 
 
 # ----- Clean -----
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR)/kernel.elf
+	rm -rf $(ISO_IMAGE)
 
 .PHONY: all run clean

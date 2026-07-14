@@ -1,18 +1,17 @@
-# PerseOS: A minimalist 32-bit OS
-This operating system was originally made to understand how these work.
-The objective is to make it easier to use, while offering VGA libs.
-You don't need to worry about graphical libraries, but you do have to worry about many other things.
-For example, in **releases**, this OS has a even more minimalist version, which is actually the terminal one.
-I will drop more things when i get this working
-
-# Credits
-Pygramer78: the head of the team and only programmer working on this for now.
-
-
-# What i used
-I used nasm, clang, lld, grub, xorriso, qemu, mtools and of course, build essentials.
-This OS was made on a WSL ubuntu and some arch linux PCs
-
-# Other
-Pygramer78 is also the creator of lunara.
-Lunara: http://95.131.202.52/
+# PerseOS: Your open-source minimalist OS
+PerseOS started off just a small project, and the team is beginning to get used to how this kind of low-level works.
+### Architecture
+**x86** Is the main architecture.
+I will probably develop a version for x86_64, for newer computers.
+### Programming language
+**Hardware Interaction:** Assembly (NASM)
+**Practically everything else:** C++ & C
+### Min requirements:
+Since I haven't booted this kernel yet, I believe that when I add the shell,
+a minimum of [insert] MB of **RAM**.
+x86 processor. [I might add x86_64 support. But not yet]
+You can use a Live USB to test, since I haven't made an installer yet.
+### Warning:
+There's only one person behind it all, so fixing bugs will take a longer time than if you were using linux or windows. 
+# The PerseOS team:
+**Perseo:** Creator and the developer responsible of this project
