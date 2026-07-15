@@ -1,7 +1,7 @@
 #include <drivers/vga/vga.hpp>
 
-static uint16_t y = 1;
-static uint16_t x = 1;
+static uint16_t y = 0;
+static uint16_t x = 0;
 
 void putchar(char character, uint8_t color)
 {
@@ -36,6 +36,17 @@ void clean_screen() {
     for (int i = 0; i < 80 * 25; i++) {
         VGA[i] = cleaner;
     }
-    y = 1;
-    x = 1;
+    y = 0;
+    x = 0;
+}
+
+void eraseLast() {
+    const char space = ' ';
+    const uint8_t color = 0x00;
+    uint16_t eraser = (color << 8) | space;
+    VGA[y * 80 + x] = eraser;
+    if (x == 0) {
+        x = 80;
+        y--;
+    }
 }

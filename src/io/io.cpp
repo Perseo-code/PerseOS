@@ -45,9 +45,18 @@ void pic_sendEOI(uint8_t irq)
 extern "C" void irq_handler(Registers* regs) {
     uint32_t irq = regs->int_no - 32;
 
-    if (irq == 1) {
-        readKey();
+    switch (irq)
+    {
+        case 0:
+            //timer_tick();
+            break;
+
+        case 1:
+            readKey();
+            break;
     }
+
+    pic_sendEOI(regs->int_no - 32);
 
     pic_sendEOI(irq);
 }
