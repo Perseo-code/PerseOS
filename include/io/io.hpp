@@ -15,6 +15,16 @@ So, we move them
 #pragma once
 #include <stdint.hpp>
 
+
+struct Registers {
+    uint32_t gs, fs, es, ds;
+    uint32_t esi, edi, ebp, esp;
+    uint32_t ebx, edx, ecx, eax;
+
+    uint32_t int_no;
+    uint32_t err_code;
+};
+
 inline void outb(uint16_t port, uint8_t value)
 {
     asm volatile ("outb %0, %1"

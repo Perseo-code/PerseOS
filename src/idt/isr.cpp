@@ -1,4 +1,5 @@
 #include <drivers/vga/vga.hpp>
+#include <io/io.hpp>
 #include <string.hpp>
 
 static const char* const exception_messages[32] = {
@@ -36,13 +37,18 @@ static const char* const exception_messages[32] = {
     "Reserved"
 };
 
-extern "C" void isr_handler(uint32_t interrupt) {
+extern "C" void isr_handler(Registers* regs) {
     clean_screen();
 
     print("EXCEPTION: ");
-    print(exception_messages[interrupt]);
+    print(exception_messages[regs->int_no]);
     print("\n");
  
+    if (regs->int_no < 32)
+        print(exception_messages[regs->int_no]);
+    else
+        print("Unknown exception");
+
     while (true)
         asm volatile("hlt");
 }

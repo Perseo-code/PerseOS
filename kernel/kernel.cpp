@@ -4,13 +4,15 @@ void init() {
     clean_screen();
     idt_init();
     pic_remap();
+
+    outb(PIC1_DATA, 0xFC);
+    outb(PIC2_DATA, 0xFF);
     asm volatile ("sti"); // Enable interruptions
 }
 
 extern "C" void kernel_main() {
     init();
-    string text = "Hello world";
-    const uint8_t color = 0x07;
-    print(text, color);
+    print("Welcome to PerseOS \n");
+
     while (true) {}
 }

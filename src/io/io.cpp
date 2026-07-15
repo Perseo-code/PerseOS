@@ -1,6 +1,6 @@
 #include <io/io.hpp>
 #include <drivers/keyboard/keyboard.hpp>
-
+#include <drivers/vga/vga.hpp>
 void pic_remap()
 {
     uint8_t masterMask = inb(PIC1_DATA);
@@ -42,7 +42,9 @@ void pic_sendEOI(uint8_t irq)
     outb(PIC1_COMMAND, 0x20);
 }
 
-extern "C" void irq_handler(uint32_t irq) {
+extern "C" void irq_handler(Registers* regs) {
+    uint32_t irq = regs->int_no - 32;
+
     if (irq == 1) {
         readKey();
     }
