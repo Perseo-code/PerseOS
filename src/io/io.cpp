@@ -1,5 +1,6 @@
 #include <io/io.hpp>
 #include <drivers/keyboard/keyboard.hpp>
+
 void pic_remap()
 {
     uint8_t masterMask = inb(PIC1_DATA);
