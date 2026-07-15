@@ -15,7 +15,7 @@ KERNEL_ELF  := $(BUILD_DIR)/kernel.elf
 ISO_IMAGE   := $(DIST_DIR)/PerseOS.iso
 
 # ===== Fuentes =====
-CPP_SOURCES   := $(shell find kernel src -name "*.cpp")
+CPP_SOURCES   := $(shell find kernel src shell -name "*.cpp")
 ASM_SOURCES := $(shell find boot src -name "*.asm")
 
 OBJECTS := \

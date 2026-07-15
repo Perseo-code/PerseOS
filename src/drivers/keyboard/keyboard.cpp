@@ -44,5 +44,6 @@ void readKey() {
             break;
     }
     if (c)
+        inputBuffer[input_length++] = c;
         putchar(c);
 }
