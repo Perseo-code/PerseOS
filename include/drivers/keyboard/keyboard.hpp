@@ -2,8 +2,13 @@
 #include <drivers/vga/vga.hpp>
 #include <io/io.hpp>
 
+typedef void (*EnterCallback)(const char*);
+void setEnterCallback(EnterCallback callback);
+
 char inputBuffer[256];
 uint32_t input_length = 0;
+char commandBuffer[256];
+uint32_t commandLength = 0;
 const char keymap[128] = {
     0,
     27,                     // Esc

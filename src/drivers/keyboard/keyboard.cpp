@@ -1,7 +1,11 @@
 #include <drivers/keyboard/keyboard.hpp>
 
 static bool shiftPressed = false;
+static EnterCallback enterCallback = nullptr;
 
+void setEnterCallback(EnterCallback callback) {
+    enterCallback = callback;
+}
 
 void readKey() {
     uint8_t scancode = inb(0x60);
@@ -11,10 +15,18 @@ void readKey() {
         case 14:
             eraseLast();
             return;
-        // Left Shift pressed
+        // Enter pressed
         case 28:
             putchar('\n');
+            commandBuffer[commandLength] = '\0';
+
+            if (enterCallback)
+                enterCallback(commandBuffer);
+            
+            commandLength = 0;
+
             return;
+        // Left shift pressed
         case 42:
             shiftPressed = true;
             return;

@@ -58,3 +58,4 @@ public:
     
 };
 const char* intToString(int value);
+bool streq(const char* a, const char* b);
