@@ -59,3 +59,4 @@ public:
 };
 const char* intToString(int value);
 bool streq(const char* a, const char* b);
+extern "C" void* memset(void* dest, int val, unsigned long count);

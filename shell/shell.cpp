@@ -9,8 +9,10 @@ void shell_execute(const char* command) {
             commands[i].functionality("");
         }
     }
+    print("> ");
 }
 
 void shell_init() {
     setEnterCallback(shell_execute);
+    print("> ");
 }

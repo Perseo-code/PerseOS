@@ -4,3 +4,4 @@
 #include <string.hpp>
 #include <idt/idt.hpp>
 #include <io/io.hpp>
+#include <shell.hpp>

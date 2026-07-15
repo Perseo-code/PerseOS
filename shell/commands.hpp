@@ -20,7 +20,7 @@ inline void clear(const char* name = "") {
     clean_screen();
 }
 
-CMD commands[CMDS] = {
+inline CMD commands[CMDS] = {
     { help, "help" },
     { clear, "clear"}
 };

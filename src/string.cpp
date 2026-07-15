@@ -54,3 +54,11 @@ bool streq(const char* a, const char* b)
 
     return *a == *b;
 }
+
+extern "C" void* memset(void* dest, int val, unsigned long count) {
+    unsigned char* ptr = (unsigned char*)dest;
+    while (count-- > 0) {
+        *ptr++ = (unsigned char)val;
+    }
+    return dest;
+}
