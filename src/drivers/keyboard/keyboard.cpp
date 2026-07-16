@@ -13,19 +13,21 @@ void readKey() {
     {
         // Backspace
         case 14:
+            if (input_length == 0)
+                return;
             eraseLast();
-            commandBuffer[commandLength] = ' ';
-            commandLength--;
+            inputBuffer[input_length] = ' ';
+            input_length--;
             return;
         // Enter pressed
         case 28:
             putchar('\n');
-            commandBuffer[commandLength] = '\0';
+            inputBuffer[input_length] = '\0';
 
             if (enterCallback)
-                enterCallback(commandBuffer);
+                enterCallback(inputBuffer);
             
-            commandLength = 0;
+            input_length = 0;
 
             return;
         // Left shift pressed
@@ -59,6 +61,5 @@ void readKey() {
     }
     if (c)
         inputBuffer[input_length++] = c;
-        commandBuffer[commandLength++] = c;
         putchar(c);
 }

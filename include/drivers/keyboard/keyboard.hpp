@@ -7,8 +7,6 @@ void setEnterCallback(EnterCallback callback);
 
 inline char inputBuffer[256];
 inline uint32_t input_length = 0;
-inline char commandBuffer[256];
-inline uint32_t commandLength = 0;
 const char keymap[128] = {
     0,
     27,                     // Esc

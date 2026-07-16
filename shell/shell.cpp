@@ -1,6 +1,5 @@
 #include "shell.hpp"
 
-
 void shell_execute(const char* command) {
     const CuttedCommand splitCmd = cmd_cutter(command);
     const char* cmd = splitCmd.cmd;
@@ -8,6 +7,8 @@ void shell_execute(const char* command) {
     for (int i = 0; i < CMDS; ++i) {
         if (streq(cmd, commands[i].name)) {
             commands[i].functionality(args);
+            input_length = 0;
+            inputBuffer[0] = '\0';
             print("> ");
             return;
         }
