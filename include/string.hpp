@@ -41,11 +41,12 @@ public:
     
     string& join(const string& other)
     {
+        uint32_t i = 0;
+
         while (length < sizeof(text) - 1 &&
-            other.text[length - (this->length)] != '\0')
+            other.text[i] != '\0')
         {
-            text[length] = other.text[length - this->length];
-            length++;
+            text[length++] = other.text[i++];
         }
 
         text[length] = '\0';

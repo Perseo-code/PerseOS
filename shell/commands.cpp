@@ -28,10 +28,11 @@ CuttedCommand cmd_cutter(const char* command){
 void help(const char* name) {
     print("Commands: \n");
     for (int i = 0; i < CMDS; i++) {
-        string num = "CMD";
+        string num = "CMD ";
         num.join(intToString(i));
         num.join(": ");
         num.join(commands[i].name);
+        print(num);
         print("\n");
     }
 }

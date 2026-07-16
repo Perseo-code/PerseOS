@@ -57,5 +57,6 @@ void readKey() {
     }
     if (c)
         inputBuffer[input_length++] = c;
+        commandBuffer[commandLength++] = c;
         putchar(c);
 }
