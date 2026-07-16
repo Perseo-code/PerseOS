@@ -14,6 +14,8 @@ void readKey() {
         // Backspace
         case 14:
             eraseLast();
+            commandBuffer[commandLength] = ' ';
+            commandLength--;
             return;
         // Enter pressed
         case 28:

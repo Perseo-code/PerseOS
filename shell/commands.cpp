@@ -36,3 +36,8 @@ void help(const char* name) {
         print("\n");
     }
 }
+
+void echo(const char* whattoprint) {
+    print(whattoprint);
+    print("\n");
+}

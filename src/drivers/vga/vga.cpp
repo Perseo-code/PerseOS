@@ -44,6 +44,12 @@ void eraseLast() {
     const char space = ' ';
     const uint8_t color = 0x00;
     uint16_t eraser = (color << 8) | space;
+    if (x == 0 && y == 0) {
+        x = 0;
+        y = 0;
+        return;
+    }
+    x--;
     VGA[y * 80 + x] = eraser;
     if (x == 0) {
         x = 80;
