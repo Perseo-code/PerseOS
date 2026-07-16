@@ -41,6 +41,28 @@ const char* intToString(int value)
     return buffer;
 }
 
+
+const char* hexToString(uint32_t value)
+{
+    static char buffer[11]; // "0x" + 8 digits + '\0'
+
+    const char* digits = "0123456789ABCDEF";
+
+    buffer[0] = '0';
+    buffer[1] = 'x';
+
+    for (int i = 0; i < 8; i++)
+    {
+        buffer[9 - i] = digits[value & 0xF];
+        value >>= 4;
+    }
+
+    buffer[10] = '\0';
+
+    return buffer;
+}
+
+
 bool streq(const char* a, const char* b)
 {
     while (*a && *b)

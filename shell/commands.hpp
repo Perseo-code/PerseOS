@@ -12,6 +12,7 @@ CuttedCommand cmd_cutter(const char* command);
 struct CMD {
     func functionality;
     const char* name;
+    const char* description;
 };
 
 // Remember, the pointers AFTER the functions
@@ -28,10 +29,10 @@ inline void clear(const char* name = "") {
 
 
 inline CMD commands[] = {
-    { help, "help" },
-    { version, "version" },
-    { clear, "clear"},
-    { echo, "echo" }
+    { help, "help", "Show this message"},
+    { version, "version", "See the OS's version" },
+    { clear, "clear", "Clear the screen"},
+    { echo, "echo", "Write something on the terminal. Use: echo <message>" }
 };
 
 constexpr size_t CMDS =

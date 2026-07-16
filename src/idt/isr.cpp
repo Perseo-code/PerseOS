@@ -40,6 +40,26 @@ static const char* const exception_messages[32] = {
 extern "C" void isr_handler(Registers* regs) {
     clean_screen();
 
+    if (regs->int_no == 14)
+    {
+        uint32_t cr2;
+        asm volatile("mov %%cr2, %0" : "=r"(cr2));
+
+        clean_screen();
+
+        print("PAGE FAULT!\n");
+        print("Address: ");
+        print(hexToString(cr2));
+        print("\n");
+
+        print("Error code: ");
+        print(hexToString(regs->err_code));
+        print("\n");
+
+        while (true)
+            asm volatile("hlt");
+    }
+
     print("EXCEPTION: ");
     print(exception_messages[regs->int_no]);
     print("\n");

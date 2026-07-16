@@ -59,5 +59,7 @@ public:
     
 };
 const char* intToString(int value);
+const char* hexToString(uint32_t value);
+
 bool streq(const char* a, const char* b);
 extern "C" void* memset(void* dest, int val, unsigned long count);

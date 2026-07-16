@@ -5,3 +5,4 @@
 #include <idt/idt.hpp>
 #include <io/io.hpp>
 #include <shell.hpp>
+#include <paging/paging.hpp>
