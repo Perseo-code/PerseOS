@@ -14,4 +14,4 @@ You can use a Live USB to test, since I haven't made an installer yet.
 ### Warning:
 There's only one person behind it all, so fixing bugs will take a longer time than if you were using linux or windows. 
 # The PerseOS team:
-**Perseo:** Creator and the developer responsible of this project
+**Perseo:** Creator and the developer responsible of this project (yes, he is crazy)
