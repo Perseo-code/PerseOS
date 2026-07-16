@@ -8,7 +8,7 @@ I will probably develop a version for x86_64, for newer computers.
 **Practically everything else:** C++ & C
 ### Min requirements:
 Since I haven't booted this kernel yet, I believe that when I add the shell,
-a minimum of [insert] MB of **RAM**.
+a maximum of 64 MB of **RAM** for now. 
 x86 processor. [I might add x86_64 support. But not yet]
 You can use a Live USB to test, since I haven't made an installer yet.
 ### Warning:
