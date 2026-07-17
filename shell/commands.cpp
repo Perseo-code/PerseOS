@@ -32,6 +32,8 @@ void help(const char* name) {
         num.join(intToString(i));
         num.join(": ");
         num.join(commands[i].name);
+        num.join(" -> ");
+        num.join(commands[i].description);
         print(num);
         print("\n");
     }
