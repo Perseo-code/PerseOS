@@ -22,7 +22,7 @@ void help(const char* = "");
 void echo(const char*);
 
 inline void version(const char* n) {
-    print("PerseOS v0.1");
+    print("PerseOS v0.2");
     print("\n");
 }
 inline void clear(const char* name = "") {
