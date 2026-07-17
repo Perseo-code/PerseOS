@@ -1,5 +1,12 @@
 #include "shell.hpp"
 
+
+void printShell() {
+    FSNode* curDir = ramfs.getCurrent();
+    print(curDir->name);
+    print(" > ");
+}
+
 void shell_execute(const char* command) {
     const CuttedCommand splitCmd = cmd_cutter(command);
     const char* cmd = splitCmd.cmd;
@@ -9,18 +16,17 @@ void shell_execute(const char* command) {
             commands[i].functionality(args);
             input_length = 0;
             inputBuffer[0] = '\0';
-            print("> ");
+            printShell();
             return;
         }
     }
     print("Unknown Command:");
     print(cmd);
     print("\n");
-    print("> ");
+    printShell();
 }
-
 
 void shell_init() {
     setEnterCallback(shell_execute);
-    print("> ");
+    printShell();
 }

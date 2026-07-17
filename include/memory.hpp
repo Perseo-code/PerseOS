@@ -10,7 +10,7 @@ struct BlockHeader {
 
 
 static uint8_t* heap_start;
-static BlockHeader* firstBlock = nullptr;
+extern BlockHeader* firstBlock;
 static uint8_t* heap_end;
 
 inline void heap_init() {

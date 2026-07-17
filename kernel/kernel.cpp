@@ -8,7 +8,9 @@ void init() {
     outb(PIC2_DATA, 0xFF);
     paging_init();
     pmm_init();
+    heap_init();
     asm volatile ("sti"); // Enable interruptions
+    ramfs.init();
 }
 
 extern "C" void kernel_main() {

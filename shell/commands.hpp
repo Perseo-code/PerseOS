@@ -1,6 +1,8 @@
 #pragma once
 #include <drivers/vga/vga.hpp>
 #include <stddef.hpp>
+#include <fs/ramfs.hpp>
+
 typedef void (*func)(const char*);
 
 struct CuttedCommand {
@@ -27,12 +29,30 @@ inline void clear(const char* name = "") {
     clean_screen();
 }
 
+inline void list(const char* n) {
+    ramfs.ls(n);
+}
 
+inline void makedir(const char* n) {
+    ramfs.mkdir(n);
+}
+
+inline void changedir(const char* n) {
+    ramfs.cd(n);
+}
+
+inline void yourpath(const char*) {
+    ramfs.pwd();
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
     { clear, "clear", "Clear the screen"},
-    { echo, "echo", "Write something on the terminal. Use: echo <message>" }
+    { echo, "echo", "Write something on the terminal. Use: echo <message>" },
+    { list, "ls", "Prints the files that exist in this folder" },
+    { makedir, "mkdir", "Creates a folder with <arg> name"},
+    { changedir, "cd", "Lets you move through the filesystem" },
+    { yourpath, "pwd", "Prints your location in the filesystem" }
 };
 
 constexpr size_t CMDS =

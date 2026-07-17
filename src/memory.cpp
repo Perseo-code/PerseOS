@@ -1,5 +1,7 @@
 #include <memory.hpp>
 
+BlockHeader* firstBlock = nullptr;
+
 void* kmalloc(uint32_t size)
 {
     // Align every allocation to 8 bytes.

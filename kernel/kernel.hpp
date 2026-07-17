@@ -6,3 +6,4 @@
 #include <io/io.hpp>
 #include <shell.hpp>
 #include <paging/paging.hpp>
+#include <fs/ramfs.hpp>

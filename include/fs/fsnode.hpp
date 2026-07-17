@@ -1,14 +1,13 @@
 #pragma once
 #include <stdint.hpp>
-
+#define NAMESIZE 32
 typedef enum {
     File,
     Folder
 } Types;
 
-class FSNode {
-public:
-    const char* name;
+struct FSNode {
+    char name[NAMESIZE];
     Types type;
     FSNode* firstChild;
     FSNode* parent;
