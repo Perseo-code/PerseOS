@@ -43,6 +43,7 @@ $(KERNEL_ELF): $(OBJECTS)
 
 # ----- Create ISO -----
 $(ISO_IMAGE): $(KERNEL_ELF)
+	mkdir -p $(DIST_DIR)
 	mkdir -p $(ISO_DIR)/boot
 	cp $(KERNEL_ELF) $(ISO_DIR)/boot/
 	grub-mkrescue -o $@ $(ISO_DIR)

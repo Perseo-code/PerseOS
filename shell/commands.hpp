@@ -49,10 +49,10 @@ inline CMD commands[] = {
     { version, "version", "See the OS's version" },
     { clear, "clear", "Clear the screen"},
     { echo, "echo", "Write something on the terminal. Use: echo <message>" },
-    { list, "ls", "Prints the files that exist in this folder" },
-    { makedir, "mkdir", "Creates a folder with <arg> name"},
-    { changedir, "cd", "Lets you move through the filesystem" },
-    { yourpath, "pwd", "Prints your location in the filesystem" }
+    { list, "ls", "Print the files that exist in this folder" },
+    { makedir, "mkdir", "Create a folder with <arg> name"},
+    { changedir, "cd", "Move through the filesystem" },
+    { yourpath, "pwd", "Print your location in the filesystem" }
 };
 
 constexpr size_t CMDS =
