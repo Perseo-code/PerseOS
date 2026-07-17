@@ -4,13 +4,19 @@
 #include <fs/ramfs.hpp>
 
 typedef void (*func)(const char*);
-
-struct CuttedCommand {
-    char cmd[32];
-    char args[224];
+#define MAX_ARGS 15
+#define MAX_ARG_LENGTH 64
+#define MAX_ARGS_LENGTH 224
+#define MAX_CMD_LENGTH 32
+struct ParsedCommand {
+    char cmd[MAX_CMD_LENGTH];
+    char args[MAX_ARGS_LENGTH];
+    char argv[MAX_ARGS][MAX_ARG_LENGTH];
+    int argc;
+    void tokenize();
 };
 
-CuttedCommand cmd_cutter(const char* command);
+ParsedCommand cmd_cutter(const char* command);
 struct CMD {
     func functionality;
     const char* name;

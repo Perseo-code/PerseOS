@@ -1,7 +1,29 @@
 #include "commands.hpp"
 
-CuttedCommand cmd_cutter(const char* command){
-    CuttedCommand result = {0};
+void ParsedCommand::tokenize() {
+    argc = 0;
+    int i = 0;
+    while (args[i] != '\0') {
+        while (args[i] == ' ') i++;
+        if (args[i] == '\0') return;
+        int j = 0;
+        while ((args[i] != ' ') && (args[i] != '\0'))
+        {
+            if (j >= MAX_ARG_LENGTH - 1) {
+                while (args[i] != ' ' && args[i] != '\0') {
+                    i++;
+                }
+            }
+            argv[argc][j++] = args[i++];
+        }
+        
+        argv[argc][j] = '\0';
+        argc++;
+    }
+}
+
+ParsedCommand cmd_cutter(const char* command){
+    ParsedCommand result = {0};
 
     uint32_t i = 0;
 
