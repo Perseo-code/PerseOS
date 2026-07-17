@@ -72,15 +72,23 @@ public:
     }
 
     void cd(const char* n) {
-        if (current->firstChild == nullptr) {
-            print("<Err:> The directory is empty");
+        if (current->parent != nullptr && streq(n, "..")) {
+            current = current->parent;
             return;
         }
 
         FSNode* last = current->firstChild;
         while (last) {
-            if (streq(last->name, n)) {
+            if (streq(last->name, n) && last->type == Folder) {
                 current = last;
+                return;
+            }
+
+            if (streq(last->name, n) && last->type == File) {
+                print("<Err:> '");
+                print(n);
+                print("' Is not a directory");
+                print("\n");
                 return;
             }
             last = last->nextSibling;
@@ -108,8 +116,8 @@ public:
             FSNode* printme = dirs.pop();
             print("/");
             print(printme->name);
-            print("/");
         }
+        print("/");
         print("\n");
     }
 
