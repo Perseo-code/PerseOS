@@ -51,6 +51,14 @@ inline void changedir(ParsedCommand& n) {
 inline void yourpath(ParsedCommand&) {
     ramfs.pwd();
 }
+
+inline void createFile(ParsedCommand& n) {
+    ramfs.create(n.argv[1]);
+}
+
+inline void type(ParsedCommand& n) {
+    ramfs.gettype(n.argv[1]);
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
@@ -59,7 +67,9 @@ inline CMD commands[] = {
     { list, "ls", "Print the files that exist in this folder" },
     { makedir, "mkdir", "Create a folder with <arg> name"},
     { changedir, "cd", "Move through the filesystem" },
-    { yourpath, "pwd", "Print your location in the filesystem" }
+    { yourpath, "pwd", "Print your location in the filesystem" },
+    { createFile, "touch", "Create a file" },
+    { type, "type", "Print if <arg> is a folder or a file" }
 };
 
 constexpr size_t CMDS =
