@@ -62,4 +62,6 @@ const char* intToString(int value);
 const char* hexToString(uint32_t value);
 
 bool streq(const char* a, const char* b);
+char* strcpy(char* a, char* b);
+uint32_t strlen(char*);
 extern "C" void* memset(void* dest, int val, unsigned long count);

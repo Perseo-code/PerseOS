@@ -62,6 +62,22 @@ const char* hexToString(uint32_t value)
     return buffer;
 }
 
+uint32_t strlen(char* a) {
+    uint32_t i = 0;
+    while (a[i]) {
+        i++;
+    }
+
+    return i;
+}
+
+char* strcpy(char* dest, char* origin) {
+    for (int i = 0; i < strlen(dest) && i < strlen(origin); i++) {
+        dest[i] = origin[i];
+    }
+
+    return dest;
+}
 
 bool streq(const char* a, const char* b)
 {
