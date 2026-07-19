@@ -3,6 +3,10 @@
 void ParsedCommand::tokenize() {
     argc = 0;
     int i = 0;
+    for (int h = 0; h < MAX_CMD_LENGTH; h++) {
+        argv[argc][h] = cmd[h];
+    }
+    argc++;
     while (args[i] != '\0') {
         while (args[i] == ' ') i++;
         if (args[i] == '\0') return;
@@ -44,10 +48,11 @@ ParsedCommand cmd_cutter(const char* command){
     while (command[i])
         result.args[j++] = command[i++];
     result.args[j] = '\0';
+    result.tokenize();
     return result;
 }
 
-void help(const char* name) {
+void help(ParsedCommand& name) {
     print("Commands: \n");
     for (int i = 0; i < CMDS; i++) {
         string num = "CMD ";
@@ -61,7 +66,7 @@ void help(const char* name) {
     }
 }
 
-void echo(const char* whattoprint) {
-    print(whattoprint);
+void echo(ParsedCommand& whattoprint) {
+    print(whattoprint.args);
     print("\n");
 }

@@ -3,7 +3,7 @@
 #include <stddef.hpp>
 #include <fs/ramfs.hpp>
 
-typedef void (*func)(const char*);
+
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
 #define MAX_ARGS_LENGTH 224
@@ -16,6 +16,7 @@ struct ParsedCommand {
     void tokenize();
 };
 
+typedef void (*func)(ParsedCommand&);
 ParsedCommand cmd_cutter(const char* command);
 struct CMD {
     func functionality;
@@ -24,30 +25,30 @@ struct CMD {
 };
 
 // Remember, the pointers AFTER the functions
-void help(const char* = "");
-void echo(const char*);
+void help(ParsedCommand&);
+void echo(ParsedCommand&);
 
-inline void version(const char* n) {
+inline void version(ParsedCommand&) {
     print("PerseOS v0.2");
     print("\n");
 }
-inline void clear(const char* name = "") {
+inline void clear(ParsedCommand&) {
     clean_screen();
 }
 
-inline void list(const char* n) {
-    ramfs.ls(n);
+inline void list(ParsedCommand& n) {
+    ramfs.ls(n.argv[1]);
 }
 
-inline void makedir(const char* n) {
-    ramfs.mkdir(n);
+inline void makedir(ParsedCommand& n) {
+    ramfs.mkdir(n.argv[1]);
 }
 
-inline void changedir(const char* n) {
-    ramfs.cd(n);
+inline void changedir(ParsedCommand& n) {
+    ramfs.cd(n.argv[1]);
 }
 
-inline void yourpath(const char*) {
+inline void yourpath(ParsedCommand&) {
     ramfs.pwd();
 }
 inline CMD commands[] = {

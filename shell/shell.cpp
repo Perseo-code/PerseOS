@@ -8,12 +8,12 @@ void printShell() {
 }
 
 void shell_execute(const char* command) {
-    const ParsedCommand splitCmd = cmd_cutter(command);
+    ParsedCommand splitCmd = cmd_cutter(command);
     const char* cmd = splitCmd.cmd;
     const char* args = splitCmd.args;
     for (int i = 0; i < CMDS; ++i) {
         if (streq(cmd, commands[i].name)) {
-            commands[i].functionality(args);
+            commands[i].functionality(splitCmd);
             input_length = 0;
             inputBuffer[0] = '\0';
             printShell();
