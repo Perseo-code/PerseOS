@@ -74,6 +74,14 @@ inline void read(ParsedCommand& n) {
 inline void size(ParsedCommand& n) {
     ramfs.size(n.argv[0]);
 }
+
+inline void remove(ParsedCommand& n) {
+    ramfs.rm(n.argv[0]);
+}
+
+/*inline void removeDir(ParsedCommand& n) {
+
+}*/
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
@@ -86,6 +94,7 @@ inline CMD commands[] = {
     { createFile, "touch", "Create a file" },
     { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
     { read, "cat", "Read a file. Args: cat <filename>"},
+    { remove, "rm", "Remove a file"},
     { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }
 };

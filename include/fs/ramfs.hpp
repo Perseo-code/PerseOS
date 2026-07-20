@@ -75,6 +75,26 @@ public:
 
         kfree(node);
     }
+
+    FSNode* findNode(const char* name) {
+        FSNode* node;
+        if (current->firstChild == nullptr) {
+            return nullptr;
+        }
+
+        if (current->firstChild != nullptr && streq(current->firstChild->name, name)) {
+            return current->firstChild;
+        }
+
+        while (node) {
+            if (streq(node->name, name)) {
+                break;
+            }
+            node = node->nextSibling;
+        }
+
+        return node;
+    }
     void mkdir(const char* n) {
         /*print("root = ");
         print(hexToString((uint32_t)root));
@@ -396,19 +416,21 @@ public:
             return;
         }
 
-        if (current->firstChild == nullptr) {
+        FSNode* fileToRemove = findNode(filename);
+        
+        if (fileToRemove == nullptr) {
+            print("File ");
             print(filename);
-            print(" does not exist");
+            print(" does not exist\n");
             return;
         }
 
-        FSNode* fileToRemove = current->firstChild;
-        while (fileToRemove) {
-            if (streq(fileToRemove->name, filename) && fileToRemove->type == File) {
-                break;
-            }
-            fileToRemove = fileToRemove->nextSibling;
+        if (fileToRemove->type != File) {
+            print(filename);
+            print(" is not a file\n");
+            return;
         }
+        destroyNode(fileToRemove);
     }
     FSNode* getCurrent() {
         return current;
