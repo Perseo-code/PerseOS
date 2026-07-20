@@ -6,7 +6,7 @@
 
 extern uint32_t page_directory[1024];
 extern uint32_t first_page_table[1024];
-static uint8_t bitmap[2048];
+extern uint8_t bitmap[2048];
 
 void paging_init();
 extern "C" void paging_enable(uint32_t* page_directory);

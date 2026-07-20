@@ -62,7 +62,7 @@ const char* hexToString(uint32_t value)
     return buffer;
 }
 
-uint32_t strlen(char* a) {
+uint32_t strlen(const char* a) {
     uint32_t i = 0;
     while (a[i]) {
         i++;
@@ -71,13 +71,39 @@ uint32_t strlen(char* a) {
     return i;
 }
 
-char* strcpy(char* dest, char* origin) {
-    for (int i = 0; i < strlen(dest) && i < strlen(origin); i++) {
+char* strcpy(char* dest, const char* origin) {
+    int i = 0;
+    while (origin[i] != '\0') {
         dest[i] = origin[i];
+        i++;
     }
+    dest[i] = '\0';
 
     return dest;
 }
+
+void stradd(char* dest, const char* a, const char* b) {
+    int i = 0;
+    int j = 0;
+
+    while (a[j] != '\0') {
+        dest[i] = a[j];
+        i++;
+        j++;
+    }
+
+    j = 0; 
+
+    while (b[j] != '\0') {
+        dest[i] = b[j];
+        i++;
+        j++;
+    }
+
+
+    dest[i] = '\0';
+}
+
 
 bool streq(const char* a, const char* b)
 {

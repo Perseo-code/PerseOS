@@ -9,17 +9,43 @@ private:
     FSNode* current;
 public:
     void init() {
+        //print("RamFS::init()\n");
+
         root = createNode("/", Folder, nullptr, 0);
+
+        /*if (root == nullptr)
+            print("root is nullptr\n");
+        else
+            print("root OK\n");
+        */
         current = root;
+
+        /*if (current == nullptr)
+            print("current is nullptr\n");
+        else
+            print("current OK\n");
+        */
     }
 
-    FSNode* createNode(const char* n, Types t, FSNode* p, uint32_t s, FSNode* f = nullptr, FSNode* ns = nullptr) {
+    FSNode* createNode(const char* n, Types t, FSNode* p, uint32_t s, char* d = nullptr, FSNode* f = nullptr, FSNode* ns = nullptr) {
         FSNode* node = (FSNode*)kmalloc(sizeof(FSNode));
         //print("kmalloc returned: ");
         //print(hexToString((uint32_t)node));
         //print("\n");
         for (int i = 0; i < NAMESIZE; i++) {
             node->name[i] = n[i];
+        }
+
+        node->data = nullptr;
+
+        if (d != nullptr) {
+            uint32_t len = strlen(d);
+            node->data = (char*)kmalloc(len + 1);
+
+            if (node->data != nullptr) {
+                strcpy(node->data, d);
+                node->size = len;
+            }
         }
         node->type = t;
         node->parent = p;
@@ -37,14 +63,21 @@ public:
         /*print("Creating folder: ");
         print(n);
         print("\n");
+        */
         /*if (current == nullptr) {
             print("current is nullptr\n");
         }
         else {
             print("current OK\n");
         }*/
+        
+
         FSNode* newDir = createNode(n, Folder, current, 0);
         
+        if (newDir == current)
+            print("newDir == current\n");
+        else
+            print("newDir != current\n");
         if (current->firstChild == nullptr) {
             current->firstChild = newDir;
             return;
@@ -135,13 +168,16 @@ public:
         FSNode* before;
         while (last) {
             if (streq(last->name, n)) {
-                print("File already exists. \n");
+                print("File or Folder already exists. \n");
                 return;
             }
             before = last;
             last = last->nextSibling;
         }
+        
+
         FSNode* newFile = createNode(n, File, current, 0);
+
         before->nextSibling = newFile;
     }
 
@@ -173,13 +209,123 @@ public:
         switch (s->type) {
             case File:
                 print(s->name);
-                print("is a file\n");
+                print(" is a file\n");
                 break;
             default:
                 print(s->name);
-                print("is a folder\n");
+                print(" is a folder\n");
                 break;
         }
+    }
+
+    void write(const char* filename, const char* content, bool overwrite = true) {
+        if (filename == nullptr || content == nullptr) {
+            print("No valid arguments \n");
+            return;
+        }
+
+        if (current->firstChild == nullptr) {
+            print(filename);
+            print(" does not exist\n");
+            return;
+        }
+
+        FSNode* fileToModify = current->firstChild;
+        bool found = false;
+        while (fileToModify) {
+            if (streq(filename, fileToModify->name) && fileToModify->type != Folder) {
+                found = true;
+                break;
+            }
+            fileToModify = fileToModify->nextSibling;
+        }
+
+        if (!found) {
+            print(filename);
+            print(" does not exist\n");
+            return;
+        }
+        uint32_t len = 0;
+        if (overwrite) {
+            if (fileToModify->data != nullptr) {
+                kfree(fileToModify->data);
+            }
+            len = strlen(content);
+            fileToModify->data = (char*)kmalloc(len + 1);
+            /*print("data ptr: ");
+            print(hexToString((uint32_t)fileToModify->data));
+            print("\n");
+
+            print("content ptr: ");
+            print(hexToString((uint32_t)content));
+            print("\n");*/
+            if (fileToModify->data == nullptr) {
+                print("Out of memory\n");
+            }
+            strcpy(fileToModify->data, content);
+            fileToModify->size = len;
+            /*print("direct read: ");
+            print(fileToModify->data);
+            print("\n");*/
+
+        } else {
+            uint32_t oldLen = 0;
+
+            if (fileToModify->data != nullptr) {
+                oldLen = strlen(fileToModify->data);
+            }
+
+            uint32_t newLen = oldLen + strlen(content);
+
+            char* temp = (char*)kmalloc(newLen + 1);
+
+            if (temp == nullptr) {
+                print("Out of memory\n");
+                return;
+            }
+
+            temp[0] = '\0'; // important if old data is empty
+
+            if (fileToModify->data != nullptr) {
+                stradd(temp, fileToModify->data, content);
+                kfree(fileToModify->data);
+            } else {
+                strcpy(temp, content);
+            }
+
+            fileToModify->data = temp;
+            fileToModify->size = newLen;
+        }
+    }
+
+    void read(const char* filename) {
+        if (filename == nullptr) {
+            print("No valid arguments \n");
+            return;
+        }
+
+        if (current->firstChild == nullptr) {
+            print(filename);
+            print(" does not exist\n");
+            return;
+        }
+
+        FSNode* fileToRead = current->firstChild;
+        while (fileToRead) {
+            if (streq(fileToRead->name, filename) && fileToRead->type == File) {
+                break;
+            } 
+
+            if (streq(fileToRead->name, filename) && fileToRead->type == Folder) {
+                print(fileToRead->name);
+                print(" is not a file");
+                return;
+            }
+            fileToRead = fileToRead->nextSibling;
+        }
+        if (fileToRead == nullptr) return;
+        print(fileToRead->data);
+        print("\n");
     }
     FSNode* getCurrent() {
         return current;

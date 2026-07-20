@@ -1,5 +1,7 @@
 #include <paging/paging.hpp>
-
+//#include <drivers/vga/vga.hpp>
+//#include <string.hpp>
+uint8_t bitmap[2048];
 uint32_t page_directory[1024] __attribute__((aligned(4096)));
 uint32_t first_page_table[1024] __attribute__((aligned(4096)));
 void paging_init() {
@@ -29,14 +31,12 @@ void pmm_init()
 
 uint32_t pmm_alloc_page()
 {
-    for (uint32_t i = 0; i < 16384; i++)
-    {
-        if (!testBit(i))
-        {
-            setBit(i);
-            return i * PAGE_SIZE;
-        }
+    for (uint32_t i = 0; i < 16384; i++) {
+    if (!testBit(i)) {
+        setBit(i);
+        return i * PAGE_SIZE;
     }
+}
 
     return 0;
 }

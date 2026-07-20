@@ -3,24 +3,49 @@
 void ParsedCommand::tokenize() {
     argc = 0;
     int i = 0;
-    for (int h = 0; h < MAX_CMD_LENGTH; h++) {
-        argv[argc][h] = cmd[h];
-    }
-    argc++;
+    bool inQuotes = false;
     while (args[i] != '\0') {
         while (args[i] == ' ') i++;
         if (args[i] == '\0') return;
+
         int j = 0;
-        while ((args[i] != ' ') && (args[i] != '\0'))
+        while ((args[i] != '\0'))
         {
-            if (j >= MAX_ARG_LENGTH - 1) {
-                while (args[i] != ' ' && args[i] != '\0') {
-                    i++;
+            if (args[i] == '"') {
+                inQuotes = !inQuotes;
+                i++;
+
+                if (inQuotes) {
+                    continue;
+                }
+                else {
+                    break;
                 }
             }
-            argv[argc][j++] = args[i++];
+            if (args[i] == ' ' && !inQuotes) {
+                break;
+            }
+            if (j >= MAX_ARG_LENGTH - 1) {
+                while (args[i] != '\0') {
+                    if (args[i] == ' ' && !inQuotes) {
+                        break;
+                    }
+                    else if (args[i] == '"' && inQuotes) {
+                        inQuotes = false;
+                        i++;
+                        break;
+                    }
+                    i++;
+                }
+            } else {
+                argv[argc][j++] = args[i++];
+            }
         }
         
+        if (inQuotes) {
+            err.e = MissingQuote;
+            inQuotes = false;
+        }
         argv[argc][j] = '\0';
         argc++;
     }

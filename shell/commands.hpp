@@ -2,7 +2,7 @@
 #include <drivers/vga/vga.hpp>
 #include <stddef.hpp>
 #include <fs/ramfs.hpp>
-
+#include "shell_error/error.hpp"
 
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
@@ -13,6 +13,7 @@ struct ParsedCommand {
     char args[MAX_ARGS_LENGTH];
     char argv[MAX_ARGS][MAX_ARG_LENGTH];
     int argc;
+    Err err;
     void tokenize();
 };
 
@@ -37,15 +38,15 @@ inline void clear(ParsedCommand&) {
 }
 
 inline void list(ParsedCommand& n) {
-    ramfs.ls(n.argv[1]);
+    ramfs.ls(n.argv[0]);
 }
 
 inline void makedir(ParsedCommand& n) {
-    ramfs.mkdir(n.argv[1]);
+    ramfs.mkdir(n.argv[0]);
 }
 
 inline void changedir(ParsedCommand& n) {
-    ramfs.cd(n.argv[1]);
+    ramfs.cd(n.argv[0]);
 }
 
 inline void yourpath(ParsedCommand&) {
@@ -53,11 +54,21 @@ inline void yourpath(ParsedCommand&) {
 }
 
 inline void createFile(ParsedCommand& n) {
-    ramfs.create(n.argv[1]);
+    ramfs.create(n.argv[0]);
 }
 
 inline void type(ParsedCommand& n) {
-    ramfs.gettype(n.argv[1]);
+    ramfs.gettype(n.argv[0]);
+}
+
+inline void write(ParsedCommand& n) {
+    bool _override = false;
+    if (streq(n.argv[2], "true")) _override = true;
+    ramfs.write(n.argv[0], n.argv[1], _override);
+}
+
+inline void read(ParsedCommand& n) {
+    ramfs.read(n.argv[0]);
 }
 inline CMD commands[] = {
     { help, "help", "Show this message"},
@@ -69,6 +80,8 @@ inline CMD commands[] = {
     { changedir, "cd", "Move through the filesystem" },
     { yourpath, "pwd", "Print your location in the filesystem" },
     { createFile, "touch", "Create a file" },
+    { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
+    { read, "cat", "Read a file. Args: cat <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }
 };
 

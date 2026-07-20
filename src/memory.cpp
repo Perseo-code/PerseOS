@@ -1,5 +1,5 @@
 #include <memory.hpp>
-
+#include <drivers/vga/vga.hpp>
 BlockHeader* firstBlock = nullptr;
 
 void* kmalloc(uint32_t size)
@@ -14,6 +14,18 @@ void* kmalloc(uint32_t size)
     // Start looking from the beginning of the heap.
     BlockHeader* current = firstBlock;
 
+    /*print("firstBlock = ");
+    print(hexToString((uint32_t)firstBlock));
+    print("\n");
+
+    if (firstBlock != nullptr) {
+        print("size = ");
+        print(intToString(firstBlock->size));
+        print("\n");
+
+        print("free = ");
+        print(firstBlock->free ? "true\n" : "false\n");
+    }*/
     // Walk through every block.
     while (current != nullptr)
     {

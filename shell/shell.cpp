@@ -1,4 +1,5 @@
 #include "shell.hpp"
+#include "shell_error/error.hpp"
 
 
 void printShell() {
@@ -9,8 +10,11 @@ void printShell() {
 
 void shell_execute(const char* command) {
     ParsedCommand splitCmd = cmd_cutter(command);
+    print_err(splitCmd.err);
     const char* cmd = splitCmd.cmd;
-    const char* args = splitCmd.args;
+    //print("cmd = '");
+    //print(splitCmd.cmd);
+    //print("'\n");
     for (int i = 0; i < CMDS; ++i) {
         if (streq(cmd, commands[i].name)) {
             commands[i].functionality(splitCmd);

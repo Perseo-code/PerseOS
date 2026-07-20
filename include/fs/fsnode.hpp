@@ -1,6 +1,8 @@
 #pragma once
 #include <stdint.hpp>
+#include <stddef.hpp>
 #define NAMESIZE 32
+constexpr size_t MAX_FILE_SIZE = 4096; // 4 KiB
 typedef enum {
     File,
     Folder
