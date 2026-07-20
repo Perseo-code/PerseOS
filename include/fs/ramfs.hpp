@@ -74,10 +74,10 @@ public:
 
         FSNode* newDir = createNode(n, Folder, current, 0);
         
-        if (newDir == current)
+        /*if (newDir == current)
             print("newDir == current\n");
         else
-            print("newDir != current\n");
+            print("newDir != current\n");*/
         if (current->firstChild == nullptr) {
             current->firstChild = newDir;
             return;
