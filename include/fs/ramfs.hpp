@@ -323,9 +323,50 @@ public:
             }
             fileToRead = fileToRead->nextSibling;
         }
-        if (fileToRead == nullptr) return;
+        if (fileToRead == nullptr) { 
+            print(filename);
+            print(" does not exist");
+            return;
+        }
         print(fileToRead->data);
         print("\n");
+    }
+
+    void size(const char* filename) {
+        if (filename == nullptr) {
+            print("Not a valid argument\n");
+            return;
+        }
+
+        if (current->firstChild == nullptr) {
+            print(filename);
+            print(" does not exist");
+            return;
+        }
+
+        FSNode* fileToRead = current->firstChild;
+        while (fileToRead) {
+            if (streq(fileToRead->name, filename) && fileToRead->type == File) {
+                break;
+            }
+            fileToRead = fileToRead->nextSibling;
+        }
+
+        if (fileToRead == nullptr) {
+            print(filename);
+            print(" does not exist");
+            return;
+        }
+
+        print("Current size of ");
+        print(fileToRead->name);
+        print(": ");
+        print(intToString(fileToRead->size));
+        print("\n");
+        print("Unused bytes: ");
+        print(intToString(4096 - fileToRead->size));
+        print("\n");
+
     }
     FSNode* getCurrent() {
         return current;

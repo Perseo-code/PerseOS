@@ -70,6 +70,10 @@ inline void write(ParsedCommand& n) {
 inline void read(ParsedCommand& n) {
     ramfs.read(n.argv[0]);
 }
+
+inline void size(ParsedCommand& n) {
+    ramfs.size(n.argv[0]);
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
@@ -82,6 +86,7 @@ inline CMD commands[] = {
     { createFile, "touch", "Create a file" },
     { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
     { read, "cat", "Read a file. Args: cat <filename>"},
+    { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }
 };
 
