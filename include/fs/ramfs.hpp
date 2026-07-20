@@ -383,7 +383,7 @@ public:
         print(intToString(fileToRead->size));
         print("\n");
         print("Unused bytes: ");
-        print(intToString(4096 - fileToRead->size));
+        print(intToString((4096 - 1) - fileToRead->size));
         print("\n");
 
     }
