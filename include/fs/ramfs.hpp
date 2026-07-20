@@ -54,6 +54,27 @@ public:
         node->size = s;
         return node;
     }
+
+    void destroyNode(FSNode* node) {
+        FSNode* parent = node->parent;
+        if (parent->firstChild == node) {
+            parent->firstChild = node->nextSibling;
+        }
+
+        FSNode* prev = parent->firstChild;
+
+        while (prev && prev->nextSibling != node)
+            prev = prev->nextSibling;
+
+        if (prev)
+            prev->nextSibling = node->nextSibling;
+        
+        if (node->data != nullptr) {
+            kfree(node->data);
+        }
+
+        kfree(node);
+    }
     void mkdir(const char* n) {
         /*print("root = ");
         print(hexToString((uint32_t)root));
@@ -367,6 +388,27 @@ public:
         print(intToString(4096 - fileToRead->size));
         print("\n");
 
+    }
+
+    void rm(const char* filename) {
+        if (filename == nullptr) {
+            print("Not a valid argument\n");
+            return;
+        }
+
+        if (current->firstChild == nullptr) {
+            print(filename);
+            print(" does not exist");
+            return;
+        }
+
+        FSNode* fileToRemove = current->firstChild;
+        while (fileToRemove) {
+            if (streq(fileToRemove->name, filename) && fileToRemove->type == File) {
+                break;
+            }
+            fileToRemove = fileToRemove->nextSibling;
+        }
     }
     FSNode* getCurrent() {
         return current;
