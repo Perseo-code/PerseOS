@@ -80,10 +80,7 @@ ParsedCommand cmd_cutter(const char* command){
 void help(ParsedCommand& name) {
     print("Commands: \n");
     for (int i = 0; i < CMDS; i++) {
-        string num = "CMD ";
-        num.join(intToString(i));
-        num.join(": ");
-        num.join(commands[i].name);
+        string num = commands[i].name;
         num.join(" -> ");
         num.join(commands[i].description);
         print(num);

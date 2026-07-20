@@ -231,17 +231,9 @@ public:
             print("File not found");
             return;
         }
-        FSNode* s = current->firstChild;
-        bool found = false;
-        while (s) {
-            if (streq(s->name, n)) {
-                found = true;
-                break;
-            }
-            s = s->nextSibling;
-        }
+        FSNode* s = findNode(n);
 
-        if (!found) {
+        if (s == nullptr) {
             print(n);
             print(" does not exist\n");
             return;
@@ -271,17 +263,9 @@ public:
             return;
         }
 
-        FSNode* fileToModify = current->firstChild;
-        bool found = false;
-        while (fileToModify) {
-            if (streq(filename, fileToModify->name) && fileToModify->type != Folder) {
-                found = true;
-                break;
-            }
-            fileToModify = fileToModify->nextSibling;
-        }
-
-        if (!found) {
+        FSNode* fileToModify = findNode(filename);
+        
+        if (fileToModify == nullptr) {
             print(filename);
             print(" does not exist\n");
             return;
@@ -351,18 +335,12 @@ public:
             return;
         }
 
-        FSNode* fileToRead = current->firstChild;
-        while (fileToRead) {
-            if (streq(fileToRead->name, filename) && fileToRead->type == File) {
-                break;
-            } 
-
-            if (streq(fileToRead->name, filename) && fileToRead->type == Folder) {
-                print(fileToRead->name);
-                print(" is not a file");
-                return;
-            }
-            fileToRead = fileToRead->nextSibling;
+        FSNode* fileToRead = findNode(filename);
+        
+        if (fileToRead->type != File) {
+            print(filename);
+            print(" is not a file");
+            return;
         }
         if (fileToRead == nullptr) { 
             print(filename);
@@ -431,6 +409,33 @@ public:
             return;
         }
         destroyNode(fileToRemove);
+    }
+
+    void rmdir(const char* dirname) {
+        if (dirname == nullptr) {
+            print("Not a valid agument\n");
+            return;
+        }
+
+        FSNode* folderToRemove = findNode(dirname);
+        if (folderToRemove == nullptr) {
+            print("Folder ");
+            print(dirname);
+            print(" does not exist");
+            return;
+        }
+
+        if (folderToRemove->type != Folder) {
+            print(dirname);
+            print(" is not a folder");
+            return;
+        }
+        if (folderToRemove->firstChild != nullptr) {
+            print(dirname);
+            print(" is not empty!");
+            return;
+        }
+        destroyNode(folderToRemove);
     }
     FSNode* getCurrent() {
         return current;

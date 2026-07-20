@@ -79,9 +79,9 @@ inline void remove(ParsedCommand& n) {
     ramfs.rm(n.argv[0]);
 }
 
-/*inline void removeDir(ParsedCommand& n) {
-
-}*/
+inline void removeDir(ParsedCommand& n) {
+    ramfs.rmdir(n.argv[0]);
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
@@ -95,6 +95,7 @@ inline CMD commands[] = {
     { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
     { read, "cat", "Read a file. Args: cat <filename>"},
     { remove, "rm", "Remove a file"},
+    { removeDir, "rmdir", "Remove a directory. (Doesn't work if it's not empty)"},
     { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }
 };
