@@ -76,7 +76,8 @@ inline void size(ParsedCommand& n) {
 }
 
 inline void remove(ParsedCommand& n) {
-    ramfs.rm(n.argv[0]);
+    bool recursive = streq(n.argv[1], "r");
+    ramfs.rm(n.argv[0], recursive);
 }
 
 inline void removeDir(ParsedCommand& n) {
@@ -94,7 +95,7 @@ inline CMD commands[] = {
     { createFile, "touch", "Create a file" },
     { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
     { read, "cat", "Read a file. Args: cat <filename>"},
-    { remove, "rm", "Remove a file"},
+    { remove, "rm", "Remove a file. Args: rm <filename/dirname> <r (to remove recursively a folder)>"},
     { removeDir, "rmdir", "Remove a directory. (Doesn't work if it's not empty)"},
     { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }

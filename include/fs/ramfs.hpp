@@ -388,27 +388,30 @@ public:
 
     }
 
-    void rm(const char* filename) {
+    void rm(const char* filename, bool recursive) {
         if (filename == nullptr) {
             print("Not a valid argument\n");
             return;
         }
 
-        FSNode* fileToRemove = findNode(filename);
+        FSNode* node = findNode(filename);
         
-        if (fileToRemove == nullptr) {
+        if (node == nullptr) {
             print("File ");
             print(filename);
             print(" does not exist\n");
             return;
         }
-
-        if (fileToRemove->type != File) {
+        if (recursive && node->type == Folder) {
+            recursiveDestroy(node);
+            return;
+        } 
+        if (node->type != File) {
             print(filename);
             print(" is not a file\n");
             return;
         }
-        destroyNode(fileToRemove);
+        destroyNode(node);
     }
 
     void rmdir(const char* dirname) {
@@ -437,6 +440,23 @@ public:
         }
         destroyNode(folderToRemove);
     }
+
+    void recursiveDestroy(FSNode* folder) {
+    
+        FSNode* last = folder->firstChild;
+        
+        while (last) {
+            FSNode* next = last->nextSibling;
+            if (last->type == File) {
+                destroyNode(last);
+            } else if (last->type == Folder) {
+                recursiveDestroy(last);
+            }
+            last = next;
+        }
+        destroyNode(folder);
+    }
+
     FSNode* getCurrent() {
         return current;
     }
