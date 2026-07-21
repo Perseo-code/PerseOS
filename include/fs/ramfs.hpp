@@ -95,6 +95,41 @@ public:
 
         return node;
     }
+
+    FSNode* cloneNode(FSNode* node, FSNode* parent)
+    {
+        FSNode* copy =
+            createNode(
+                node->name,
+                node->type,
+                parent,
+                node->size,
+                node->data
+            );
+
+        if (node->type == Folder)
+        {
+            FSNode* child = node->firstChild;
+            FSNode* lastCopy = nullptr;
+
+            while (child)
+            {
+                FSNode* childCopy =
+                    cloneNode(child, copy);
+
+                if (copy->firstChild == nullptr)
+                    copy->firstChild = childCopy;
+                else
+                    lastCopy->nextSibling = childCopy;
+
+                lastCopy = childCopy;
+                child = child->nextSibling;
+            }
+        }
+
+        return copy;
+    }
+
     void mkdir(const char* n) {
         /*print("root = ");
         print(hexToString((uint32_t)root));
@@ -475,38 +510,51 @@ public:
 
     void copy(const char* name, const char* destiny) {
         FSNode* node = findNode(name);
+        if (node == nullptr && destiny == nullptr) {
+            print("No valid arguments\n");
+            return;
+        }
         if (node == nullptr) {
             print(name);
             print(" does not exist\n");
             return;
+        }
+        if (findNode(destiny) != nullptr) {
+            print(destiny);
+            print(" already exists.\n");
+            return;
+        }
+        FSNode* newCopy = cloneNode(node, current);
+
+        strcpy(newCopy->name, destiny);
+        
+        
+        if (current->firstChild == nullptr) {
+            current->firstChild = newCopy;
+            return;
+        }
+
+        FSNode* last = current->firstChild;
+        while (last->nextSibling != nullptr) {
+            last = last->nextSibling;
+        }
+
+        last->nextSibling = newCopy;
+
+    }
+
+    char* getData(FSNode* node) {
+        if (node == nullptr) {
+            return nullptr;
         }
 
         char* copiedData = nullptr;
         if (node->data != nullptr) {
             uint32_t len = strlen(node->data);
             copiedData = (char*)kmalloc(len + 1);
-            if (copiedData != nullptr) {
-                strcpy(copiedData, node->data);
-            }
+            strcpy(copiedData, node->data);
         }
-
-        FSNode* newCopy = createNode(destiny, node->type, current, node->size, copiedData);
-        if (current->firstChild == nullptr) {
-            current->firstChild = newCopy;
-        } else {
-            FSNode* last = current->firstChild;
-            while (last->nextSibling != nullptr) {
-                last = last->nextSibling;
-            }
-            last->nextSibling = newCopy;
-        }
-
-        if (node->type == Folder && node->firstChild != nullptr) {
-            FSNode* child = node->firstChild;
-            while (child != nullptr) {
-                child = child->nextSibling;
-            }
-        }
+        return copiedData;
     }
     FSNode* getCurrent() {
         return current;
