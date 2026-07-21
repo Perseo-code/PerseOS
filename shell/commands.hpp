@@ -83,6 +83,14 @@ inline void remove(ParsedCommand& n) {
 inline void removeDir(ParsedCommand& n) {
     ramfs.rmdir(n.argv[0]);
 }
+
+inline void move(ParsedCommand& n) {
+    ramfs.rename(n.argv[0], n.argv[1]);
+}
+
+inline void copy(ParsedCommand& n) {
+    ramfs.copy(n.argv[0], n.argv[1]);
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { version, "version", "See the OS's version" },
@@ -95,8 +103,10 @@ inline CMD commands[] = {
     { createFile, "touch", "Create a file" },
     { write, "write", "Write somthing onto a file. \nArgs: write <filename> <text content> <override (true or nothing)>"},
     { read, "cat", "Read a file. Args: cat <filename>"},
-    { remove, "rm", "Remove a file. Args: rm <filename/dirname> <r (to remove recursively a folder)>"},
+    { remove, "rm", "Remove a file. \nArgs: rm <filename/dirname> <r (to remove recursively a folder)>"},
     { removeDir, "rmdir", "Remove a directory. (Doesn't work if it's not empty)"},
+    { move, "ren", "Rename a file/directory. Args: move <origin> <destiny>"},
+    { copy, "copy", "Copy a file/directory. Args: copy <origin> <destiny>"},
     { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" }
 };
