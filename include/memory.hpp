@@ -8,7 +8,8 @@ struct BlockHeader {
     BlockHeader* next;
 };
 
-
+constexpr uintptr_t HEADER_SIZE =
+    (sizeof(BlockHeader) + 7) & ~7;
 static uint8_t* heap_start;
 extern BlockHeader* firstBlock;
 static uint8_t* heap_end;
@@ -17,10 +18,11 @@ inline void heap_init() {
     firstBlock = (BlockHeader*)pmm_alloc_page();
 
     firstBlock->size =
-        4096 - sizeof(BlockHeader);
+        4096 - HEADER_SIZE;
 
     firstBlock->free = true;
     firstBlock->next = nullptr;
 }
-void* kmalloc(uint32_t size);
+void* kmalloc(uintptr_t size);
 void kfree(void*);
+void* krealloc(void* ptr, uintptr_t size);

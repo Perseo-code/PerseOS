@@ -2,7 +2,8 @@
 #include <drivers/vga/vga.hpp>
 BlockHeader* firstBlock = nullptr;
 
-void* kmalloc(uint32_t size)
+
+void* kmalloc(uintptr_t size)
 {
     // Align every allocation to 8 bytes.
     // Example:
@@ -19,17 +20,19 @@ void* kmalloc(uint32_t size)
     print("\n");
 
     if (firstBlock != nullptr) {
-        print("size = ");
+        print("size = ");ough?
+        if (current->free && current->size >= size)
+        {
         print(intToString(firstBlock->size));
         print("\n");
 
         print("free = ");
         print(firstBlock->free ? "true\n" : "false\n");
     }*/
-    // Walk through every block.
+    // Walk through every current.
     while (current != nullptr)
     {
-        // Is this block free and large enough?
+        // Is this current free and large enough?
         if (current->free && current->size >= size)
         {
             // Can we split it?
@@ -37,44 +40,44 @@ void* kmalloc(uint32_t size)
             // We only split if there is enough room left for:
             //  - another BlockHeader
             //  - at least 8 usable bytes
-            if (current->size >= size + sizeof(BlockHeader) + 8)
+            if (current->size >= size + HEADER_SIZE + 8)
             {
-                // The new block begins immediately after:
+                // The new current begins immediately after:
                 //
-                // [Header][Requested bytes]
+                // [Header][Requested bytes]BlockHeader
                 //
                 // So:
-                // newBlock =
+                // newcurrent =
                 // current
                 // + sizeof(BlockHeader)
                 // + requested size
-                BlockHeader* newBlock =
+                BlockHeader* newcurrent =
                     (BlockHeader*)
                     (
                         (uint8_t*)current
-                        + sizeof(BlockHeader)
+                        + HEADER_SIZE
                         + size
                     );
 
-                // The remaining free space becomes the new block.
-                newBlock->size =
+                // The remaining free space becomes the new current.
+                newcurrent->size =
                     current->size
                     - size
-                    - sizeof(BlockHeader);
+                    - HEADER_SIZE;
 
-                newBlock->free = true;
+                newcurrent->free = true;
 
-                // Insert the new block into the linked list.
-                newBlock->next = current->next;
-                current->next = newBlock;
+                // Insert the new current into the linked list.
+                newcurrent->next = current->next;
+                current->next = newcurrent;
 
-                // The current block now only represents
+                // The current current now only represents
                 // the requested allocation.
                 current->size = size;
             }
 
             // Whether we split or not,
-            // this block is now in use.
+            // this current is now in use.
             current->free = false;
 
             // Return the address AFTER the header.
@@ -86,15 +89,15 @@ void* kmalloc(uint32_t size)
             //          returned pointer
             return
                 (uint8_t*)current
-                + sizeof(BlockHeader);
+                + HEADER_SIZE;
         }
 
-        // This block wasn't suitable.
+        // This current wasn't suitable.
         // Try the next one.
         current = current->next;
     }
 
-    // No block was large enough.
+    // No current was large enough.
     // Later we'll grow the heap here.
     return nullptr;
 }
@@ -108,16 +111,82 @@ void kfree(void* ptr)
     // The user pointer points AFTER the header.
     //
     // Move backwards to recover it.
-    BlockHeader* block =
+    BlockHeader* current =
         (BlockHeader*)
         (
             (uint8_t*)ptr
-            - sizeof(BlockHeader)
+            - HEADER_SIZE
         );
 
-    // Mark the block as free.
+    // Mark the current as free.
     // A future kmalloc() can reuse it.
-    block->free = true;
+    current->free = true;
+    
+    // Coalescing (Merge adjancent free currents)
+    current = firstBlock;
 
-    // Later we'll merge neighbouring free blocks here.
+    while (current && current->next)
+    {
+        if (current->free && current->next->free)
+        {
+            current->size +=
+                HEADER_SIZE
+                + current->next->size;
+
+            current->next = current->next->next;
+
+            continue;
+        }
+
+        current = current->next;
+    }
+}
+
+void* krealloc(void* ptr, size_t newSize) {
+    // Reallocate the selection.
+    if (ptr == nullptr) {
+        return kmalloc(newSize);
+    }
+
+    if (newSize == 0) {
+        kfree(ptr);
+        return nullptr;
+    }
+
+    BlockHeader* current = (BlockHeader*)((uint8_t*)ptr - HEADER_SIZE);
+    
+    size_t alignedNewSize = (newSize + 7) & ~7;
+    if (alignedNewSize <= current->size) {
+        
+
+        if (current->size >= alignedNewSize + HEADER_SIZE + 8) {
+            
+            char* current_payload_start = (char*)current + HEADER_SIZE;
+            BlockHeader* next_free_current = (BlockHeader*)(current_payload_start + alignedNewSize);
+
+            next_free_current->size = current->size - alignedNewSize - HEADER_SIZE;
+            next_free_current->free = true;
+            next_free_current->next = current->next;
+
+            current->size = alignedNewSize;
+            current->next = next_free_current;
+        }
+        
+        return ptr; 
+    }
+
+    if (current->next != nullptr && current->next->free && (current->size + HEADER_SIZE + current->next->size) >= newSize) {
+        current->size += HEADER_SIZE + current->next->size;
+        current->next = current->next->next;
+
+        return ptr;
+    }
+
+    void* new_ptr = kmalloc(newSize);
+    if (new_ptr == nullptr) return nullptr;
+
+    memcpy(new_ptr, ptr, current->size);
+
+    kfree(ptr);
+    return new_ptr;
 }

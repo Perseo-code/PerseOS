@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.hpp>
+#include <stddef.hpp>
 class string {
 private:
     char text[256];
@@ -66,3 +67,4 @@ char* strcpy(char* a, const char* b);
 void stradd(char* dest, const char* a, const char* b);
 uint32_t strlen(const char*);
 extern "C" void* memset(void* dest, int val, unsigned long count);
+void* memcpy(void* dest, const void* src, size_t n);
