@@ -4,7 +4,7 @@ CC			:= clang
 LD          := ld.lld
 ASM         := nasm
 
-CPPFLAGS      := --target=i686-unknown-elf -ffreestanding -fno-exceptions -fno-rtti -Iinclude -Ishell
+CPPFLAGS      := --target=i686-unknown-elf -ffreestanding -fno-exceptions -fno-rtti -Iinclude -Ishell -g -mgeneral-regs-only
 LDFLAGS     := -T linker/linker.ld
 ASMFLAGS    := -Iboot/ -f elf32
 
