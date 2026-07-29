@@ -32,11 +32,11 @@ void pmm_init()
 uint32_t pmm_alloc_page()
 {
     for (uint32_t i = 0; i < 16384; i++) {
-    if (!testBit(i)) {
-        setBit(i);
-        return i * PAGE_SIZE;
+        if (!testBit(i)) {
+            setBit(i);
+            return i * PAGE_SIZE;
+        }
     }
-}
 
     return 0;
 }

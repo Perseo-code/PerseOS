@@ -3,6 +3,35 @@
 BlockHeader* firstBlock = nullptr;
 
 
+void* allocateFromBlock(BlockHeader* block, uintptr_t size) {
+    if (block->size >= size + HEADER_SIZE + 8)
+    {
+        BlockHeader* newBlock =
+            (BlockHeader*)
+            (
+                (uint8_t*)block
+                + HEADER_SIZE
+                + size
+            );
+
+        newBlock->size =
+            block->size
+            - size
+            - HEADER_SIZE;
+
+        newBlock->free = true;
+        newBlock->next = block->next;
+
+        block->next = newBlock;
+        block->size = size;
+    }
+
+    block->free = false;
+
+    return (uint8_t*)block + HEADER_SIZE;
+}
+
+
 void* kmalloc(uintptr_t size)
 {
     // Align every allocation to 8 bytes.
@@ -14,7 +43,7 @@ void* kmalloc(uintptr_t size)
 
     // Start looking from the beginning of the heap.
     BlockHeader* current = firstBlock;
-
+    BlockHeader* last = nullptr;
     /*print("firstBlock = ");
     print(hexToString((uint32_t)firstBlock));
     print("\n");
@@ -35,71 +64,42 @@ void* kmalloc(uintptr_t size)
         // Is this current free and large enough?
         if (current->free && current->size >= size)
         {
-            // Can we split it?
-            //
-            // We only split if there is enough room left for:
-            //  - another BlockHeader
-            //  - at least 8 usable bytes
-            if (current->size >= size + HEADER_SIZE + 8)
-            {
-                // The new current begins immediately after:
-                //
-                // [Header][Requested bytes]BlockHeader
-                //
-                // So:
-                // newcurrent =
-                // current
-                // + sizeof(BlockHeader)
-                // + requested size
-                BlockHeader* newcurrent =
-                    (BlockHeader*)
-                    (
-                        (uint8_t*)current
-                        + HEADER_SIZE
-                        + size
-                    );
-
-                // The remaining free space becomes the new current.
-                newcurrent->size =
-                    current->size
-                    - size
-                    - HEADER_SIZE;
-
-                newcurrent->free = true;
-
-                // Insert the new current into the linked list.
-                newcurrent->next = current->next;
-                current->next = newcurrent;
-
-                // The current current now only represents
-                // the requested allocation.
-                current->size = size;
-            }
-
-            // Whether we split or not,
-            // this current is now in use.
-            current->free = false;
-
-            // Return the address AFTER the header.
-            //
-            // User receives:
-            //
-            // [Header][User memory]
-            //          ^
-            //          returned pointer
-            return
-                (uint8_t*)current
-                + HEADER_SIZE;
+            // Allocate the block
+            return allocateFromBlock(current, size);
         }
 
         // This current wasn't suitable.
         // Try the next one.
+        last = current;
         current = current->next;
     }
 
     // No current was large enough.
-    // Later we'll grow the heap here.
-    return nullptr;
+    uint32_t page = pmm_alloc_page();
+
+    if (page == 0) {
+        // Out of physical memory
+        return nullptr;
+    }
+    
+    BlockHeader* newBlock = (BlockHeader*)page;
+
+    newBlock->size = PAGE_SIZE - HEADER_SIZE;
+    newBlock->free = true;
+    newBlock->next = nullptr;
+
+    // Add it to the linked list
+    if (last->free)
+    {
+        last->size += HEADER_SIZE + PAGE_SIZE;
+    }
+    else
+    {
+        last->next = newBlock;
+    }
+
+    current = newBlock;
+    return allocateFromBlock(newBlock, size);
 }
 
 void kfree(void* ptr)
