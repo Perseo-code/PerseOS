@@ -3,7 +3,7 @@
 #include <stddef.hpp>
 #include <fs/ramfs.hpp>
 #include "shell_error/error.hpp"
-
+#include <memory.hpp>
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
 #define MAX_ARGS_LENGTH 224
@@ -27,8 +27,9 @@ struct CMD {
 
 // Remember, the pointers AFTER the functions
 void help(ParsedCommand&);
+void man(ParsedCommand&);
 void echo(ParsedCommand&);
-
+void mem(ParsedCommand&);
 inline void version(ParsedCommand&) {
     print("PerseOS v0.2");
     print("\n");
@@ -91,8 +92,13 @@ inline void move(ParsedCommand& n) {
 inline void copy(ParsedCommand& n) {
     ramfs.copy(n.argv[0], n.argv[1]);
 }
+
+inline void find(ParsedCommand& n) {
+    ramfs.find(n.argv[0]);
+}
 inline CMD commands[] = {
     { help, "help", "Show this message"},
+    { man, "man", "See only the help message for a command. Args: man <cmd>"},
     { version, "version", "See the OS's version" },
     { clear, "clear", "Clear the screen"},
     { echo, "echo", "Write something on the terminal. Use: echo <message>" },
@@ -108,7 +114,9 @@ inline CMD commands[] = {
     { move, "ren", "Rename a file/directory. Args: move <origin> <destiny>"},
     { copy, "copy", "Copy a file/directory. Args: copy <origin> <destiny>"},
     { size, "size", "Print the size of a file. Args: size <filename>"},
-    { type, "type", "Print if <arg> is a folder or a file" }
+    { type, "type", "Print if <arg> is a folder or a file" },
+    { mem, "mem", "Gives data about the allocated memory" },
+    { find, "find", "Look for a file/folder. Args: find <file/folder>"}
 };
 
 constexpr size_t CMDS =

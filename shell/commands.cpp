@@ -77,7 +77,7 @@ ParsedCommand cmd_cutter(const char* command){
     return result;
 }
 
-void help(ParsedCommand& name) {
+void help(ParsedCommand& n) {  
     print("Commands: \n");
     for (int i = 0; i < CMDS; i++) {
         string num = commands[i].name;
@@ -88,7 +88,70 @@ void help(ParsedCommand& name) {
     }
 }
 
+void man(ParsedCommand& name) {
+    bool found = false;
+    int i = 0; 
+    for (;i < CMDS; i++) {
+        if (streq(commands[i].name, name.argv[0])) {
+            found = true;
+            break;
+        }
+    }
+
+    if (!found) {
+        print("The command ");
+        print(name.argv[0]);
+        print(" does not exist");
+        return;
+    }
+
+    string num = commands[i].name;
+    num.join(" -> ");
+    num.join(commands[i].description);
+    print(num);
+    print("\n");
+    return;
+}
+
 void echo(ParsedCommand& whattoprint) {
     print(whattoprint.args);
+    print("\n");
+}
+
+void mem(ParsedCommand& n) {
+    BlockHeader* last = firstBlock;
+    BlockHeader* before;
+    uint32_t usedBlocks = 0;
+    uint32_t freeBlocks = 0;
+    uint32_t blocks = 0;
+    uint32_t usedBytes = 0;
+    uint32_t freeBytes = 0;
+    while (last) {
+        if (last->free) {
+            freeBlocks++;
+            freeBytes += last->size;
+        } else {
+            usedBlocks++;
+            usedBytes += last->size;
+        }
+        blocks++;
+        before = last;
+        last = last->next;
+    }
+
+    print("Current Block Address: ");
+    print(hexToString((uintptr_t)before));
+    print("\n");
+    print("Used blocks: ");
+    print(intToString(usedBlocks));
+    print("\n");
+    print("Free blocks: ");
+    print(intToString(freeBlocks));
+    print("\n");
+    print("Used bytes: ");
+    print(intToString(usedBytes));
+    print("\n");
+    print("Free bytes: ");
+    print(intToString(freeBytes));
     print("\n");
 }

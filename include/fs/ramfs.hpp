@@ -76,24 +76,43 @@ public:
         kfree(node);
     }
 
-    FSNode* findNode(const char* name) {
-        if (current->firstChild == nullptr) {
+    FSNode* findNode(const char* name, FSNode* nword = nullptr) {
+        if (nword == nullptr) {
+            nword = current;
+        }
+        if (nword->firstChild == nullptr) {
             return nullptr;
         }
 
-        if (current->firstChild != nullptr && streq(current->firstChild->name, name)) {
-            return current->firstChild;
+        if (nword->firstChild != nullptr && streq(nword->firstChild->name, name)) {
+            return nword->firstChild;
         }
 
-        FSNode* node = current->firstChild;
-        while (node) {
-            if (streq(node->name, name)) {
-                break;
-            }
-            node = node->nextSibling;
+        FSNode* node = nword->firstChild;
+        FSNode* before;
+        bool found = false;
+        node = current->firstChild;
+            FSNode* foundit;
+            while (node) {
+                if (node->type == Folder) {
+                    foundit = findNode(name, node);
+                    if (foundit != nullptr) {
+                        found = true;
+                        break;
+                    }
+                }
+                if (streq(node->name, name)) {
+                    foundit = node;
+                    found = true;
+                    break;
+                }
+                before = node;
+                node = node->nextSibling;
         }
-
-        return node;
+        if (!found) {
+            return nullptr;
+        }
+        return foundit;
     }
 
     FSNode* cloneNode(FSNode* node, FSNode* parent)
@@ -543,6 +562,34 @@ public:
 
     }
 
+
+    void find(const char* name) {
+        FSNode* node = findNode(name);
+        if (node == nullptr) {
+            print(name);
+            print(" does not exist.");
+            return;
+        }
+
+        Stack<FSNode*, 64> dirs;
+        FSNode* dir = node;
+        while (dir->parent != nullptr) {
+            dirs.push(dir);
+            dir = dir->parent;
+        }
+
+        print("File or Folder found at: ");
+        while (!dirs.empty()) {
+            FSNode* printme = dirs.pop();
+            print("/");
+            print(printme->name);
+        }
+        if (dir->type == Folder) {
+            print("/");
+        }
+        print("\n");
+        
+    }
     char* getData(FSNode* node) {
         if (node == nullptr) {
             return nullptr;
