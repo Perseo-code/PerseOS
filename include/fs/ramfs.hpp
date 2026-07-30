@@ -158,6 +158,25 @@ public:
         return copy;
     }
 
+    bool appendChild(FSNode* parent, FSNode* child)
+    {
+        if (parent == nullptr || child == nullptr)
+            return false;
+
+        if (parent->firstChild == nullptr)
+        {
+            parent->firstChild = child;
+            return true;
+        }
+
+        FSNode* last = parent->firstChild;
+
+        while (last->nextSibling)
+            last = last->nextSibling;
+
+        last->nextSibling = child;
+        return true;
+    }
     void mkdir(const char *n)
     {
         /*print("root = ");
@@ -200,22 +219,13 @@ public:
         }
         else
         {
-            FSNode *last = p.parent->firstChild;
-            while (last->nextSibling != nullptr)
+            if (findNode(p.name, p.parent, false))
             {
-                if (streq(last->name, p.name))
-                {
-                    print("Folder already exists.");
-                    return;
-                }
-                last = last->nextSibling;
-            }
-            if (streq(last->name, p.name))
-            {
-                print("Folder already exists.");
+                print("Folder already exists.\n");
                 return;
             }
-            last->nextSibling = newDir;
+
+            appendChild(p.parent, newDir);
         }
     }
 
@@ -288,8 +298,8 @@ public:
 
         FSNode *node;
         ParentResult result{};
-        print("err = ");
-        print(err ? "true\n" : "false\n");
+        //print("err = ");
+        //print(err ? "true\n" : "false\n");
         if (path[0] == '/')
         {
             node = root;
@@ -350,27 +360,27 @@ public:
                 path++;
     
             if (*path == '\0') {
-                print("Last component: '");
+                /*print("Last component: '");
                 print(component);
-                print("'\n");
+                print("'\n");*/
 
                 result.parent = node;
 
                 memcpy(result.name, component, NAMESIZE);
                 result.name[NAMESIZE - 1] = '\0';
 
-                print("Returning name: '");
+                /*print("Returning name: '");
                 print(result.name);
-                print("'\n");
+                print("'\n");*/
 
                 return result;
             }
             
             // Find this child inside the current node
             node = findNode(component, node, false);
-            print(intToString(err));
+            //print(intToString(err));
             if (node == nullptr) {
-                print("The parent directory does not exist\n");
+                /*print("The parent directory does not exist\n");*/
                 err = true;
                 return {};
             }
@@ -380,8 +390,8 @@ public:
                 return {};
             }
         }
-        print("COMPONENT: ");
-        print(component);
+        /*print("COMPONENT: ");
+        print(component);*/
         err = true;
         return {};
     }
@@ -464,42 +474,33 @@ public:
     void create(const char *n)
     {
         bool err = false;
-        ParentResult dir = resolveParent(n, err);
+        ParentResult p = resolveParent(n, err);
         if (err) {
             print("Error when resolving the path");
         }
-        if (dir.parent == nullptr) {
+        if (p.parent == nullptr) {
             print(n);
             print(" does not exist\n");
             return;
         }
 
 
-        FSNode *newFile = createNode(n, File, dir.parent, 0);
+        FSNode *newFile = createNode(p.name, File, p.parent, 0);
 
-        if (dir.parent->firstChild == nullptr)
+        if (p.parent->firstChild == nullptr)
         {
-            dir.parent->firstChild = newFile;
+            p.parent->firstChild = newFile;
             return;
         }
         else
         {
-            FSNode *last = dir.parent->firstChild;
-            while (last->nextSibling != nullptr)
+            if (findNode(p.name, p.parent, false))
             {
-                if (streq(last->name, dir.name))
-                {
-                    print("Folder already exists.");
-                    return;
-                }
-                last = last->nextSibling;
-            }
-            if (streq(last->name, dir.name))
-            {
-                print("Folder already exists.");
+                print("File already exists.\n");
                 return;
             }
-            last->nextSibling = newFile;
+
+            appendChild(p.parent, newFile);
         }
     }
 
@@ -767,6 +768,12 @@ public:
     void copy(const char *name, const char *destiny)
     {
         FSNode *node = resolvePath(name);
+        bool err = false;
+        ParentResult dest = resolveParent(destiny, err);
+        if (err) {
+            print("Parent not found");
+            return;
+        }
         if (node == nullptr && destiny == nullptr)
         {
             print("No valid arguments\n");
@@ -778,29 +785,30 @@ public:
             print(" does not exist\n");
             return;
         }
-        if (findNode(destiny) != nullptr)
+        if (findNode(dest.name, dest.parent, false) != nullptr)
         {
             print(destiny);
             print(" already exists.\n");
             return;
         }
-        FSNode *newCopy = cloneNode(node, current);
 
-        strcpy(newCopy->name, destiny);
+        FSNode *newCopy = cloneNode(node, dest.parent);
 
-        if (current->firstChild == nullptr)
+        strcpy(newCopy->name, dest.name);
+        if (dest.parent->firstChild == nullptr)
         {
-            current->firstChild = newCopy;
-            return;
+            dest.parent->firstChild = newCopy;
         }
-
-        FSNode *last = current->firstChild;
-        while (last->nextSibling != nullptr)
+        else
         {
-            last = last->nextSibling;
-        }
+           if (findNode(dest.name, dest.parent, false))
+            {
+                print("Destination already exists.\n");
+                return;
+            }
 
-        last->nextSibling = newCopy;
+            appendChild(dest.parent, newCopy);
+        }
     }
 
     void find(const char *name)

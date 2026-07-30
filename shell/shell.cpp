@@ -1,5 +1,5 @@
 #include "shell.hpp"
-#include "shell_error/error.hpp"
+#include "error/error.hpp"
 
 
 void printShell() {
@@ -10,7 +10,7 @@ void printShell() {
 
 void shell_execute(const char* command) {
     ParsedCommand splitCmd = cmd_cutter(command);
-    print_err(splitCmd.err);
+    //print_err(splitCmd.err);
     const char* cmd = splitCmd.cmd;
     //print("cmd = '");
     //print(splitCmd.cmd);

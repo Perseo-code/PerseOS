@@ -2,7 +2,7 @@
 #include <drivers/vga/vga.hpp>
 #include <stddef.hpp>
 #include <fs/ramfs.hpp>
-#include "shell_error/error.hpp"
+#include "error/error.hpp"
 #include <memory.hpp>
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
@@ -13,7 +13,6 @@ struct ParsedCommand {
     char args[MAX_ARGS_LENGTH];
     char argv[MAX_ARGS][MAX_ARG_LENGTH];
     int argc;
-    Err err;
     void tokenize();
 };
 
