@@ -20,3 +20,5 @@ extern "C" void kernel_main() {
     shell_init();
     while (true) {}
 }
+
+extern "C" void __cxa_pure_virtual() {}

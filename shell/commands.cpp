@@ -43,8 +43,7 @@ void ParsedCommand::tokenize() {
         }
         
         if (inQuotes) {
-            ShellError err(ERR_MISSING_QUOTE, true, args);
-            err.raise();
+            RAISE(ShellError, ERR_MISSING_QUOTE, true, nullptr);
             inQuotes = false;
         }
         argv[argc][j] = '\0';

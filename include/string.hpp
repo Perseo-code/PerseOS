@@ -40,6 +40,10 @@ public:
     
     char get(uint32_t index) const {return text[index];}
     
+    bool empty() {
+        return length - 1;
+    }
+
     string& join(const string& other)
     {
         uint32_t i = 0;

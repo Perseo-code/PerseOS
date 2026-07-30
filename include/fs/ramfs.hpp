@@ -1,9 +1,12 @@
 #pragma once
 #include <fs/fsnode.hpp>
-#include <drivers/vga/vga.hpp>
 #include <memory.hpp>
 #include <stack.hpp>
 #include <string.hpp>
+#include <error/error.hpp>
+#include <drivers/vga/vga.hpp>
+
+
 struct ParentResult {
     FSNode* parent;
     char name[NAMESIZE];
@@ -14,7 +17,6 @@ class RamFS
 private:
     FSNode *root;
     FSNode *current;
-
 public:
     void init()
     {
@@ -198,12 +200,12 @@ public:
         ParentResult p = resolveParent(n, err);
 
         if (err) {
-            print("resolveParent failed\n");
+            RAISE(FSError, ERR_PARENT_NOT_FOUND, false, n);
             return;
         }
         if (p.parent == nullptr)
         {
-            print("resolveParent returned null parent\n");
+            RAISE(FSError, ERR_NULLPTR, false, n);
             return;
         }
         FSNode* newDir = createNode(p.name, Folder, p.parent, 0);
@@ -221,7 +223,7 @@ public:
         {
             if (findNode(p.name, p.parent, false))
             {
-                print("Folder already exists.\n");
+                RAISE(FSError, ERR_ALREADY_EXISTS, false, p.name);
                 return;
             }
 
@@ -319,9 +321,9 @@ public:
         char component[NAMESIZE];
         while (*path != '\0')
         {
-            print("PATH: ");
+            /*print("PATH: ");
             print(path);
-            print("\n");
+            print("\n");*/
             
             // Skip repeated slashes
             while (*path == '/')
@@ -430,15 +432,12 @@ public:
         FSNode* dir = resolvePath(n);
 
         if (dir == nullptr) {
-            print("<Err:>There's no such directory as: ");
-            print(n);
-            print("\n");
+            RAISE(FSError, ERR_NULLPTR, false, n);
             return;
         }
 
         if (dir->type != Folder) {
-            print(n);
-            print(" is a file\n");
+            RAISE(FSError, ERR_NOT_A_FOLDER, false, n);
             return;
         }
 
@@ -476,11 +475,11 @@ public:
         bool err = false;
         ParentResult p = resolveParent(n, err);
         if (err) {
-            print("Error when resolving the path");
+            RAISE(FSError, ERR_RESOLVE, false, "");
+            return;
         }
         if (p.parent == nullptr) {
-            print(n);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NULLPTR, false, n);
             return;
         }
 
@@ -496,7 +495,7 @@ public:
         {
             if (findNode(p.name, p.parent, false))
             {
-                print("File already exists.\n");
+                RAISE(FSError, ERR_ALREADY_EXISTS, false, "");
                 return;
             }
 
@@ -509,7 +508,7 @@ public:
         FSNode* dir = resolvePath(n);
         if (dir == nullptr)
         {
-            print("File not found\n");
+            RAISE(FSError, ERR_NULLPTR, false, n);
             return;
         }
 
@@ -530,7 +529,7 @@ public:
     {
         if (filename == nullptr || content == nullptr)
         {
-            print("No valid arguments \n");
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
 
@@ -538,8 +537,7 @@ public:
 
         if (file == nullptr)
         {
-            print(filename);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NULLPTR, false, filename);
             return;
         }
         uint32_t len = 0;
@@ -560,7 +558,8 @@ public:
             print("\n");*/
             if (file->data == nullptr)
             {
-                print("Out of memory\n");
+                RAISE(GenericError, ERR_OUT_OF_MEMORY, false, "");
+                return;
             }
             strcpy(file->data, content);
             file->size = len;
@@ -583,7 +582,7 @@ public:
 
             if (temp == nullptr)
             {
-                print("Out of memory\n");
+                RAISE(GenericError, ERR_OUT_OF_MEMORY, false, "");
                 return;
             }
 
@@ -608,28 +607,20 @@ public:
     {
         if (filename == nullptr)
         {
-            print("No valid arguments \n");
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
 
         FSNode* file = resolvePath(filename);
         if (file == nullptr)
         {
-            print(filename);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NULLPTR, false, filename);
             return;
         }
 
         if (file->type != File)
         {
-            print(filename);
-            print(" is not a file\n");
-            return;
-        }
-        if (file == nullptr)
-        {
-            print(filename);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NOT_A_FILE, false, file->name);
             return;
         }
 
@@ -646,15 +637,14 @@ public:
     {
         if (filename == nullptr)
         {
-            print("Not a valid argument\n");
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
         FSNode* file = resolvePath(filename);
 
         if (file == nullptr)
         {
-            print(filename);
-            print(" does not exist");
+            RAISE(FSError, ERR_NULLPTR, false, filename);
             return;
         }
 
@@ -672,7 +662,7 @@ public:
     {
         if (filename == nullptr)
         {
-            print("Not a valid argument\n");
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
 
@@ -680,9 +670,7 @@ public:
 
         if (node == nullptr)
         {
-            print("File ");
-            print(filename);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NULLPTR, false, filename);
             return;
         }
         if (recursive && node->type == Folder)
@@ -692,8 +680,7 @@ public:
         }
         if (node->type != File)
         {
-            print(filename);
-            print(" is not a file\n");
+            RAISE(FSError, ERR_NOT_A_FILE, false, filename);
             return;
         }
         destroyNode(node);
@@ -703,29 +690,25 @@ public:
     {
         if (dirname == nullptr)
         {
-            print("Not a valid agument\n");
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
 
         FSNode *folderToRemove = resolvePath(dirname);
         if (folderToRemove == nullptr)
         {
-            print("Folder ");
-            print(dirname);
-            print(" does not exist");
+            RAISE(FSError, ERR_NULLPTR, false, dirname);
             return;
         }
 
         if (folderToRemove->type != Folder)
         {
-            print(dirname);
-            print(" is not a folder");
+            RAISE(FSError, ERR_NOT_A_FOLDER, false, dirname);
             return;
         }
         if (folderToRemove->firstChild != nullptr)
         {
-            print(dirname);
-            print(" is not empty!");
+            RAISE(FSError, ERR_DIRECTORY_NOT_EMPTY, false, dirname);
             return;
         }
         destroyNode(folderToRemove);
@@ -757,8 +740,7 @@ public:
         FSNode *node = resolvePath(name);
         if (node == nullptr)
         {
-            print(name);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NULLPTR, false, name);
             return;
         }
 
@@ -768,27 +750,27 @@ public:
     void copy(const char *name, const char *destiny)
     {
         FSNode *node = resolvePath(name);
+        if (node == nullptr && destiny == nullptr)
+        {
+            RAISE(GenericError, ERR_INVALID_ARGS, false, "");
+            return;
+        }
+        
         bool err = false;
         ParentResult dest = resolveParent(destiny, err);
         if (err) {
-            print("Parent not found");
+            RAISE(FSError, ERR_PARENT_NOT_FOUND, false, destiny);
             return;
         }
-        if (node == nullptr && destiny == nullptr)
-        {
-            print("No valid arguments\n");
-            return;
-        }
+
         if (node == nullptr)
         {
-            print(name);
-            print(" does not exist\n");
+            RAISE(FSError, ERR_NOT_FOUND, false, name);
             return;
         }
         if (findNode(dest.name, dest.parent, false) != nullptr)
         {
-            print(destiny);
-            print(" already exists.\n");
+            RAISE(FSError, ERR_ALREADY_EXISTS, false, dest.name);
             return;
         }
 
@@ -803,7 +785,7 @@ public:
         {
            if (findNode(dest.name, dest.parent, false))
             {
-                print("Destination already exists.\n");
+                RAISE(FSError, ERR_ALREADY_EXISTS, false, dest.name);
                 return;
             }
 
@@ -816,8 +798,7 @@ public:
         FSNode *node = resolvePath(name);
         if (node == nullptr)
         {
-            print(name);
-            print(" does not exist.");
+            RAISE(FSError, ERR_NULLPTR, false, name);
             return;
         }
 
