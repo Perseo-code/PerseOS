@@ -2,6 +2,7 @@
 #include <io/io.hpp>
 #include <error/error.hpp>
 #include <stdint.hpp>
+
 class ATA {
 private:
     void cacheFlush() {
