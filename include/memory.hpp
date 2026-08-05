@@ -26,3 +26,5 @@ inline void heap_init() {
 void* kmalloc(uintptr_t size);
 void kfree(void*);
 void* krealloc(void* ptr, uintptr_t size);
+
+// I'm filled with DETERMINATION

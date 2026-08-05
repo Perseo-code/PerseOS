@@ -22,3 +22,8 @@ extern "C" void kernel_main() {
 }
 
 extern "C" void __cxa_pure_virtual() {}
+
+/*
+Hello. You've made it here.
+Congratulations.
+*/
