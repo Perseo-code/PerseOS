@@ -1,5 +1,5 @@
 #include <drivers/keyboard/keyboard.hpp>
-
+using namespace VIDEO;
 static bool shiftPressed = false;
 static EnterCallback enterCallback = nullptr;
 

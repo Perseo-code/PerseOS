@@ -1,5 +1,5 @@
 #include "kernel.hpp"
-
+using namespace VIDEO;
 void init() {
     clean_screen();
     idt_init();

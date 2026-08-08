@@ -1,7 +1,7 @@
 #include <drivers/vga/vga.hpp>
 #include <io/io.hpp>
 #include <string.hpp>
-
+using namespace VIDEO;
 static const char* const exception_messages[32] = {
     "Division By Zero",
     "Debug",

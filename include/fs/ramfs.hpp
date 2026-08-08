@@ -5,7 +5,7 @@
 #include <string.hpp>
 #include <error/error.hpp>
 #include <drivers/vga/vga.hpp>
-
+using namespace VIDEO;
 
 struct ParentResult {
     FSNode* parent;

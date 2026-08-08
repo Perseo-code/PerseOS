@@ -1,5 +1,6 @@
 #pragma once
 #include <drivers/vga/vga.hpp>
+using namespace VIDEO;
 #define ISAWARNING(var) \
     print(var ? "<WARNING:>" : "<ERR:>")
 #define RAISE(type, specific, warning, str) \

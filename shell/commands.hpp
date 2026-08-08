@@ -8,6 +8,7 @@
 #define MAX_ARG_LENGTH 64
 #define MAX_ARGS_LENGTH 224
 #define MAX_CMD_LENGTH 32
+using namespace VIDEO;
 struct ParsedCommand {
     char cmd[MAX_CMD_LENGTH];
     char args[MAX_ARGS_LENGTH];

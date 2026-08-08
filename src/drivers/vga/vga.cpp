@@ -3,7 +3,7 @@
 static uint16_t y = 0;
 static uint16_t x = 0;
 
-void eraseRow(int row) {
+void VIDEO::eraseRow(int row) {
     const char space = ' ';
     const uint8_t color = 0x00;
     uint16_t eraser = (color << 8) | space;
@@ -19,10 +19,10 @@ void scroll() {
         }
     }
 
-    eraseRow(VGA_HEIGHT - 1);
+    VIDEO::eraseRow(VGA_HEIGHT - 1);
 }
 
-void putchar(char character, uint8_t color)
+void VIDEO::putchar(char character, uint8_t color)
 {
     if (character == '\n') {
         y += 1;
@@ -52,13 +52,13 @@ void putchar(char character, uint8_t color)
     }
 }
 
-void print(const string& text, const uint8_t color) {
+void VIDEO::print(const string& text, const uint8_t color) {
     for (uint32_t i = 0; i < text.getSize(); i++) {
         putchar(text.get(i), color);
     }
 }
 
-void clean_screen() {
+void VIDEO::clean_screen() {
     /*We know that each character are 2 bytes. And the grid is 80x25
     So, we have to clean everything*/
     const char space = ' ';
@@ -71,7 +71,7 @@ void clean_screen() {
     x = 0;
 }
 
-void eraseLast() {
+void VIDEO::eraseLast() {
     const char space = ' ';
     const uint8_t color = 0x00;
     uint16_t eraser = (color << 8) | space;
