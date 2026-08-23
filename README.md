@@ -21,5 +21,8 @@ You can use a Live USB to test, since I haven't made an installer yet.
 I know perfectly well that this OS isn't ready to even compete against a real thing, like linux distros and windows. But I'm still gonna try.
 ### Warning:
 There's only one person behind it all, so fixing bugs will take a longer time than if you were using linux or windows. 
-# The PerseOS team:
-**Perseo:** Creator and the developer responsible of this project (yes, he is crazy)
+
+### License:
+This project is licensed under the GNU General Public License v3.0 - See the [LICENSE](LICENSE) file for details.
+
+Copyright (C) 2026 [PerseOS team](https://perseos.duckdns.org/)
