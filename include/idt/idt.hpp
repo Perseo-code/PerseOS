@@ -21,8 +21,8 @@ void idt_set_gate(
     uint8_t vector,
     uint32_t handler,
     uint16_t selector,
-    uint8_t flags);
+    uint8_t flags); // Create a gate so the device can be configured as an interrupt
 
 
-void idt_init();
-extern "C" void idt_load(IDTR*);
+void idt_init(); // Start the idt
+extern "C" void idt_load(IDTR*); // Load the IDT using the function from the stub
