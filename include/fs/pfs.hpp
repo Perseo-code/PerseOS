@@ -4,13 +4,10 @@
 #include <fs/fsnode.hpp>
 namespace FS {
 
-enum Type : bool {
-    Directory,
-    File
-};
 
-PFSNode* createPFSNode(Type, const char*, bool, PFSNode* parent = nullptr);
+PFSNode* createPFSNode(Types, const char*, bool, PFSNode* child = nullptr);
 uint8_t* encodePFSNode(PFSNode* node);
+PFSNode* decodePFSNode(const uint8_t* metadata);
 class PFS {
 private:
     ATA disk;
@@ -19,7 +16,7 @@ private:
     uint32_t lba;
 public:
     PFS(ATA disk) : disk(disk) { // Assuming the disk has been already initialized.
-        root = createPFSNode(Directory, "/", false);
+        root = createPFSNode(Folder, "/", false);
         current = root;
         lba = 1;
         disk.write28(lba, encodePFSNode(root));

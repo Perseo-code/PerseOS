@@ -19,16 +19,18 @@ struct FSNode {
 };
 
 constexpr uint8_t MAX_NAMESIZE = 255;
-constexpr uint8_t MAX_INLINE_CONTENT = 249;
+
 struct PFSNode {
-    Type type;
     char name[MAX_NAMESIZE];
+    size_t name_size;
+    size_t file_size;
+    Types type;
     bool extension;
-    PFSNode* parent;
-    char* data;
+    PFSNode* child;
 };
 
-struct PFSExtension {
+struct PFSExtension { 
     PFSNode* parent;
-    const char* content;
+    PFSExtension* sibling;
+    char* content;
 };
