@@ -4,6 +4,7 @@
 #include <fs/ramfs.hpp>
 #include "error/error.hpp"
 #include <memory.hpp>
+#include <timer/timer.hpp>
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
 #define MAX_ARGS_LENGTH 224
@@ -96,6 +97,15 @@ inline void copy(ParsedCommand& n) {
 inline void find(ParsedCommand& n) {
     ramfs.find(n.argv[0]);
 }
+
+inline void millis(ParsedCommand& n) {
+    print(intToString(Time::getTimer()));
+}
+
+inline void seconds(ParsedCommand& n) {
+    print(intToString(Time::seconds()));
+}
+
 inline CMD commands[] = {
     { help, "help", "Show this message"},
     { man, "man", "See only the help message for a command. Args: man <cmd>"},
@@ -116,7 +126,9 @@ inline CMD commands[] = {
     { size, "size", "Print the size of a file. Args: size <filename>"},
     { type, "type", "Print if <arg> is a folder or a file" },
     { mem, "mem", "Gives data about the allocated memory" },
-    { find, "find", "Look for a file/folder. Args: find <file/folder>"}
+    { find, "find", "Look for a file/folder. Args: find <file/folder>"},
+    { millis, "millis", "Shows the time variable."},
+    { seconds, "seconds", "Shows the time variable but in seconds."}
 };
 
 constexpr size_t CMDS =

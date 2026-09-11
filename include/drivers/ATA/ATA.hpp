@@ -2,7 +2,9 @@
 #include <io/io.hpp>
 #include <error/error.hpp>
 #include <stdint.hpp>
-#define DEFAULT_ATA_TIMEOUT 1000000
+#include <timer/timer.hpp>
+#define DEFAULT_ATA_TIMEOUT 15000
+#define DEFAULT_ATA_RWAIT_TIME 5
 enum ATAResult {
     ATA_OK,
     ATA_TIMEOUT,
@@ -42,19 +44,18 @@ private:
         outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);
     }
 
-    void reactWait() { // 400ns delay
-        inb(ATA_CMD_PORT);
-        inb(ATA_CMD_PORT);
-        inb(ATA_CMD_PORT);
-        inb(ATA_CMD_PORT);
+    void reactWait() { 
+        Time::resetTimer();
+        while (Time::getTimer() < DEFAULT_ATA_RWAIT_TIME);
     }
 
     ATAResult waitForDRQ() {
-        reactWait(); // Always wait 400ns first for status to update (Because normally, ATA is slower than SATA or nvme or whatever isn't deprecated)
-        
+        reactWait();
+        Time::resetTimer();
         // We only break out when BUSY clears AND DATA REQUEST becomes active.
         while (true) {
-            for (int ticks = 0; ticks < DEFAULT_ATA_TIMEOUT; ticks++) {
+            uint32_t ticks = Time::getTimer();
+            for (; ticks < DEFAULT_ATA_TIMEOUT; ticks++) {
                 uint8_t status = inb(ATA_CMD_PORT);
         
                 if (status & 0x20 || status & 0x01) {
@@ -87,7 +88,8 @@ public:
         }
 
         // Wait for drive to finish processing
-        for (int ticks = 0; ticks < DEFAULT_ATA_TIMEOUT; ticks++) { // Each tick is 100ns
+        uint32_t ticks = Time::getTimer();
+        for (; ticks < DEFAULT_ATA_TIMEOUT; ticks++) { // Each tick is 100ns
             status = inb(ATA_CMD_PORT);
             if (!(status & 0x80)) {
                 break;
@@ -95,7 +97,7 @@ public:
         }
 
         // Check if data is actually ready
-        if (!(status & 0x80)) {
+        if (status & 0x80) {
             device_found = false;
             RAISE(DeviceError, ERR_TIMEOUT, false, "ATA Identify timed out");
             return false;
@@ -168,7 +170,8 @@ public:
         ATAResult n = waitForDRQ();
         if (n != ATA_OK) {
             // uint8_t err_reg = inb(ATA_ERRFEAT_PORT); // Read why it failed
-            RAISE(DeviceError, (n == ATA_ERR) ? ERR_DEVICE_WRITE_FAILED, false, "Device Write Failed" : ERR_TIMEOUT, false, "ATA Drive Timed out");
+            if (ATA_ERR) RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false, "Device Write Failed");
+            else RAISE(DeviceError, ERR_TIMEOUT, false, "ATA Drive Timed out");
             return;
         }
         const uint16_t* ptr = (uint16_t*) buffer;

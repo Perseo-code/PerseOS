@@ -4,6 +4,7 @@ void init() {
     clean_screen();
     idt_init();
     pic_remap();
+    PIT::init(1193);
     outb(PIC1_DATA, 0xFC);
     outb(PIC2_DATA, 0xFF);
     paging_init();

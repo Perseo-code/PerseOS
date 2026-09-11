@@ -1,6 +1,7 @@
 #include <io/io.hpp>
 #include <drivers/keyboard/keyboard.hpp>
 #include <drivers/vga/vga.hpp>
+#include <timer/timer.hpp>
 void pic_remap()
 {
     uint8_t masterMask = inb(PIC1_DATA);
@@ -48,15 +49,13 @@ extern "C" void irq_handler(Registers* regs) {
     switch (irq)
     {
         case 0:
-            //timer_tick();
+            Time::millis();
             break;
 
         case 1:
             readKey();
             break;
     }
-
-    pic_sendEOI(regs->int_no - 32);
 
     pic_sendEOI(irq);
 }
