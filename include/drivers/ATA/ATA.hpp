@@ -13,20 +13,26 @@ enum ATAResult {
 };
 
 // Every port for ATA
-const uint16_t ATA_DATA_PORT = 0x1F0;
-const uint16_t ATA_ERRFEAT_PORT = 0x1F1;
-const uint16_t ATA_SECTOR_COUNT = 0x1F2;
-const uint16_t ATA_LBA_LOW = 0x1F3;
-const uint16_t ATA_LBA_MID = 0x1F4;
-const uint16_t ATA_LBA_HIGH = 0x1F5;
-const uint16_t ATA_DRIVE_HEAD_SELECT = 0x1F6;
-const uint16_t ATA_CMD_PORT = 0x1F7;
+constexpr uint16_t ATA_DATA_PORT = 0x1F0;
+constexpr uint16_t ATA_ERRFEAT_PORT = 0x1F1;
+constexpr uint16_t ATA_SECTOR_COUNT = 0x1F2;
+constexpr uint16_t ATA_LBA_LOW = 0x1F3;
+constexpr uint16_t ATA_LBA_MID = 0x1F4;
+constexpr uint16_t ATA_LBA_HIGH = 0x1F5;
+constexpr uint16_t ATA_DRIVE_HEAD_SELECT = 0x1F6;
+constexpr uint16_t ATA_CMD_PORT = 0x1F7;
 
 // Commands
 constexpr uint8_t  ATA_CMD_READ        = 0x20;
 constexpr uint8_t  ATA_CMD_WRITE       = 0x30;
 constexpr uint8_t  ATA_CMD_IDENTIFY    = 0xEC;
 constexpr uint8_t  ATA_CMD_CACHE_FLUSH = 0xE7;
+
+// Status
+constexpr uint8_t ATA_SR_ERR = 0x01;
+constexpr uint8_t ATA_SR_DRQ = 0x08;
+constexpr uint8_t ATA_SR_DF = 0x20;
+constexpr uint8_t ATA_SR_BSY = 0x80;
 
 class ATA {
 private:
@@ -44,31 +50,32 @@ private:
         outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);
     }
 
-    void reactWait() { 
+    void ataWait() { 
         Time::resetTimer();
         while (Time::getTimer() < DEFAULT_ATA_RWAIT_TIME);
     }
 
     ATAResult waitForDRQ() {
-        reactWait();
+        ataWait();
         Time::resetTimer();
         // We only break out when BUSY clears AND DATA REQUEST becomes active.
-        while (true) {
-            uint32_t ticks = Time::getTimer();
-            for (; ticks < DEFAULT_ATA_TIMEOUT; ticks++) {
-                uint8_t status = inb(ATA_CMD_PORT);
-        
-                if (status & 0x20 || status & 0x01) {
-                    return ATA_ERR;
-                }
-
-                if (!(status & 0x80) && (status & 0x08)) {
-                    return ATA_OK;
-                }
+        while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) {
+            uint8_t status = inb(ATA_CMD_PORT);
+    
+            if (status & ATA_SR_DF) {
+                return ATA_DEV_FAULT;
             }
-            
-            return ATA_TIMEOUT; // Timeout!
+
+            if (status & ATA_SR_ERR) {
+                return ATA_ERR;
+            }
+
+            if (!(status & ATA_SR_BSY) && (status & ATA_SR_DRQ)) {
+                return ATA_OK;
+            }
         }
+        
+        return ATA_TIMEOUT; // Timeout!
     }
 public:
     bool init() {
@@ -79,7 +86,7 @@ public:
         outb(ATA_LBA_HIGH, 0);
         
         outb(ATA_CMD_PORT, ATA_CMD_IDENTIFY);
-        reactWait(); 
+        ataWait(); 
 
         uint8_t status = inb(ATA_CMD_PORT);
         if (status == 0) {
@@ -88,37 +95,36 @@ public:
         }
 
         // Wait for drive to finish processing
-        uint32_t ticks = Time::getTimer();
-        for (; ticks < DEFAULT_ATA_TIMEOUT; ticks++) { // Each tick is 100ns
+        Time::resetTimer();
+
+        while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) { // Each tick is 100ns
             status = inb(ATA_CMD_PORT);
-            if (!(status & 0x80)) {
+            if (!(status & ATA_SR_BSY)) {
                 break;
             }
         }
 
         // Check if data is actually ready
-        if (status & 0x80) {
+        if (status & ATA_SR_BSY) {
             device_found = false;
             RAISE(DeviceError, ERR_TIMEOUT, false, "ATA Identify timed out");
             return false;
         }
 
-        if (!(status & 0x20)) {
+        if (status & ATA_SR_DF) {
             device_found = false;
             RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false, "ATA Device fault");
             return false;
         }
 
-        // Device reported an error
-        if (status & 0x01)
-        {
+        if (status & ATA_SR_ERR) {
             device_found = false;
-            RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false, "ATA IDENTIFY failed");
+            RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false, "Could not prepare ATA device");
             return false;
         }
 
         // DRQ must be set before reading the 512-byte IDENTIFY data
-        if (!(status & 0x08))
+        if (!(status & ATA_SR_DRQ))
         {
             device_found = false;
             RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false,
@@ -144,14 +150,24 @@ public:
         return sectors;
     }
     void read28(uint32_t lba, uint8_t* buffer) {
+        if (lba > 0x0FFFFFFF) {
+            RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false,
+                "LBA exceeds ATA LBA28 range");
+            return;
+        }
+
         if (!device_found) {
-            RAISE(DeviceError, ERR_DEVICE_NOT_FOUND, false, "");    
+            RAISE(DeviceError, ERR_DEVICE_NOT_FOUND, false, "ATA Device Not Found");    
             return;
         }
         setLBAbits(lba);
         outb(ATA_CMD_PORT, ATA_CMD_READ); // READ SECTOR
-        if (waitForDRQ() != ATA_OK) {
-            uint8_t err_reg = inb(ATA_ERRFEAT_PORT); // Read why it failed
+        ATAResult wdrq = waitForDRQ();
+        if (wdrq != ATA_OK) {
+            //uint8_t err_reg = inb(ATA_ERRFEAT_PORT); // Read why it failed
+            if (wdrq == ATA_ERR) RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false, "Failed to read");
+            else if (wdrq == ATA_DEV_FAULT) RAISE(DeviceError, ERR_DEVICE_READ_FAILED, false, "Device Faulted");
+            else RAISE(DeviceError, ERR_TIMEOUT, false, "Device Timed out");
             return;
         }
         uint16_t* ptr = (uint16_t*)buffer;
@@ -161,6 +177,12 @@ public:
     }
 
     void write28(uint32_t lba, const uint8_t* buffer) {
+        if (lba > 0x0FFFFFFF) {
+            RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false,
+                "LBA exceeds ATA LBA28 range");
+            return;
+        }
+
         if (!device_found) {
             RAISE(DeviceError, ERR_DEVICE_NOT_FOUND, false, "ATA Device Not found");
             return;
@@ -170,8 +192,15 @@ public:
         ATAResult n = waitForDRQ();
         if (n != ATA_OK) {
             // uint8_t err_reg = inb(ATA_ERRFEAT_PORT); // Read why it failed
-            if (ATA_ERR) RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false, "Device Write Failed");
-            else RAISE(DeviceError, ERR_TIMEOUT, false, "ATA Drive Timed out");
+            if (n == ATA_ERR)
+                RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false,
+                    "Device Write Failed");
+            else if (n == ATA_DEV_FAULT)
+                RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false,
+                    "ATA Device Fault");
+            else if (n == ATA_TIMEOUT)
+                RAISE(DeviceError, ERR_TIMEOUT, false,
+                    "ATA Drive Timed Out");
             return;
         }
         const uint16_t* ptr = (uint16_t*) buffer;
