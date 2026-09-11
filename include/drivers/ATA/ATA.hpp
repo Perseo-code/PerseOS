@@ -12,6 +12,9 @@ enum ATAResult {
     ATA_DEV_FAULT // Yes, it's my fault. Get it?
 };
 
+
+constexpr uint16_t SECTOR_SIZE = 512;
+
 // Every port for ATA
 constexpr uint16_t ATA_DATA_PORT = 0x1F0;
 constexpr uint16_t ATA_ERRFEAT_PORT = 0x1F1;
