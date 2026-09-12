@@ -101,5 +101,9 @@ void PFS::mount() {
     uint8_t* buffer = (uint8_t*)kmalloc(SECTOR_SIZE);
     disk.read28(lba, buffer);
     superblock = decodeSuperblock(buffer);
-    if (superblock->magic != PFS_MAGIC) return;
+    if (superblock->magic != PFS_MAGIC) {superblock->valid = false; return;}
+    lba++;
+    disk.read28(lba, buffer);
+    root = decodePFSNode(buffer);
+    current = root;
 }

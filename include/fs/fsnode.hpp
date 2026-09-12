@@ -26,6 +26,8 @@ struct PFSSuperblock {
 
     uint32_t root_lba;
     uint32_t total_sectors;
+
+    bool valid;
 };
 
 struct PFSNode {

@@ -15,7 +15,15 @@ PFSSuperblock* createSuperBlock(uint32_t root_lba, uint32_t total_sectors) {
     superblock->version = CURRENT_PFS_VERSION;
     superblock->root_lba = root_lba;
     superblock->total_sectors = total_sectors;
+    return superblock;
 }
+
+enum Mode {
+    ReadOnly,
+    ReadWrite,
+    Append
+};
+
 class PFS {
 private:
     ATA disk;
@@ -32,5 +40,7 @@ public:
     }
     void format();
     void mount();
+    PFSNode* create(const char* path);
+    PFSNode* open(const char* path, Mode mode);
 };
 }
