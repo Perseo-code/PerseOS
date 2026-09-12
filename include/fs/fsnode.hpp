@@ -19,18 +19,30 @@ struct FSNode {
 };
 
 constexpr uint8_t MAX_NAMESIZE = 255;
+constexpr uint32_t PFS_MAGIC = 0xBADB01FF;
+struct PFSSuperblock {
+    uint32_t magic;
+    uint32_t version;
+
+    uint32_t root_lba;
+    uint32_t total_sectors;
+};
 
 struct PFSNode {
     char name[MAX_NAMESIZE];
-    size_t name_size;
-    size_t file_size;
+    uint32_t name_size;
+    uint32_t file_size;
+    uint32_t sector;
     Types type;
     bool extension;
     PFSNode* child;
+    uint32_t child_sector;
 };
 
 struct PFSExtension { 
     PFSNode* parent;
+    uint32_t parent;
+    uint32_t sibling;
     PFSExtension* sibling;
     char* content;
 };
