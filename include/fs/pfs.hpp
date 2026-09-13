@@ -36,7 +36,7 @@ public:
     }
     void format();
     void mount();
-    PFSNode* create(const char* path);
-    PFSNode* open(const char* path, Mode mode);
+    void create(const char* path);
+    void open(const char* path, Mode mode);
 };
 }

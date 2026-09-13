@@ -2,7 +2,7 @@
 #include <string.hpp>
 #include <fs/fsnode.hpp>
 #include <memory.hpp>
-
+#include <drivers/ATA/ATA.hpp>
 struct ParentResult {
     FSNode* parent;
     char name[NAMESIZE];
@@ -20,5 +20,5 @@ struct PFSParentResult {
     bool err;
 };
 
-PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current);
-PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current);
+PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current, ATA* disk);
+PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current, ATA* disk);

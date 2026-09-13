@@ -1,4 +1,5 @@
 #include <fs/fsresolver.hpp>
+
 FSNode* resolvePath(const char *path, FSNode* root, FSNode* current)
 {
     FSNode *node;
@@ -166,7 +167,7 @@ ParentResult resolveParent(const char* path, FSNode* root, FSNode* current, bool
 }
 
 
-PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current) {
+PFSNode* resolvePFSPath(const char* path, PFSNode* root, ATA* disk, PFSNode* current) {
     PFSNode* node;
     if (path[0] == '/')
     {
@@ -214,7 +215,7 @@ PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current) {
             continue;
         }
         // Find this child inside the current node
-        node = findPFSNode(component, current, node, false);
+        node = findPFSNode(component, node, disk, false);
 
         if (node == nullptr)
             return nullptr;
@@ -223,7 +224,7 @@ PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current) {
     return node;
 }
 
-PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current, bool &err) {
+PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current, ATA* disk, bool &err) {
     err = false;
     if (path == nullptr || *path == '\0') {
         err = true;
@@ -311,7 +312,7 @@ PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* curre
         }
         
         // Find this child inside the current node
-        node = findPFSNode(component, current, node, false);
+        node = findPFSNode(component, node, disk, false);
         //print(intToString(err));
         if (node == nullptr) {
             /*print("The parent directory does not exist\n");*/

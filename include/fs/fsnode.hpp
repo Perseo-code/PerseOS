@@ -1,6 +1,7 @@
 #pragma once
 #include <stdint.hpp>
 #include <stddef.hpp>
+#include <drivers/ATA/ATA.hpp>
 #define NAMESIZE 32
 constexpr size_t MAX_FILE_SIZE = 4096; // 4 KiB
 typedef enum Types : bool {
@@ -63,5 +64,5 @@ bool appendChild(FSNode* parent, FSNode* child);
 PFSNode* createPFSNode(Types, const char*, bool, PFSNode* child = nullptr);
 uint8_t* encodePFSNode(PFSNode* node);
 PFSNode* decodePFSNode(const uint8_t* metadata);
-PFSNode* findPFSNode(const char* n, PFSNode* current, PFSNode* dir = nullptr, bool recursive = false);
+PFSNode* findPFSNode(const char* n, PFSNode* dir, ATA* disk, bool recursive = false);
 void loadPFSNode(PFSNode* parent, ATA disk); 

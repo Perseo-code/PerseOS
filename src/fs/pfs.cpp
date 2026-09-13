@@ -1,5 +1,6 @@
 #include <fs/pfs.hpp>
 #include <memory.hpp>
+#include <fs/fsresolver.hpp>
 using namespace FS;
 // Create 4 bytes using unsigned integer (1 byte) array. Already sums the counter by 4.
 #define C4BUUI(destiny, origin, index) \ 
@@ -92,7 +93,7 @@ PFSSuperblock* decodeSuperblock(const uint8_t* metadata) {
 
 void PFS::format() {
     lba = 1;
-    superblock = createSuperBlock(lba++, 2048);
+    superblock = createSuperBlock(lba++, disk.getTotalSectors());
     root = createPFSNode(Folder, "/", false);
     current = root;
     uint8_t* buffer = encodeSuperblock(superblock);
@@ -113,4 +114,8 @@ void PFS::mount() {
     root = decodePFSNode(buffer);
     current = root;
     loadPFSNode(root, disk);
+}
+
+void PFS::create(const char* path) {
+    PFSNode* newNode = resolvePFSPath(path, root, current);
 }
