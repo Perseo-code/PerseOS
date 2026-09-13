@@ -1,17 +1,12 @@
 #pragma once
 #include <fs/fsnode.hpp>
+#include <fs/fsresolver.hpp>
 #include <memory.hpp>
 #include <stack.hpp>
 #include <string.hpp>
 #include <error/error.hpp>
 #include <drivers/vga/vga.hpp>
 using namespace VIDEO;
-
-struct ParentResult {
-    FSNode* parent;
-    char name[NAMESIZE];
-};
-
 class RamFS
 {
 private:
@@ -38,147 +33,7 @@ public:
         */
     }
 
-    FSNode *createNode(const char *n, Types t, FSNode *p, uint32_t s, char *d = nullptr, FSNode *f = nullptr, FSNode *ns = nullptr)
-    {
-        FSNode *node = (FSNode *)kmalloc(sizeof(FSNode));
-        // print("kmalloc returned: ");
-        // print(hexToString((uint32_t)node));
-        // print("\n");
-        for (int i = 0; i < NAMESIZE; i++)
-        {
-            node->name[i] = n[i];
-        }
-
-        node->data = nullptr;
-
-        if (d != nullptr)
-        {
-            uint32_t len = strlen(d);
-            node->data = (char *)kmalloc(len + 1);
-
-            if (node->data != nullptr)
-            {
-                strcpy(node->data, d);
-                node->size = len;
-            }
-        }
-        node->type = t;
-        node->parent = p;
-        node->firstChild = f;
-        node->nextSibling = ns;
-        node->size = s;
-        return node;
-    }
-
-    void destroyNode(FSNode *node)
-    {
-        FSNode *parent = node->parent;
-        if (parent->firstChild == node)
-        {
-            parent->firstChild = node->nextSibling;
-        }
-
-        FSNode *prev = parent->firstChild;
-
-        while (prev && prev->nextSibling != node)
-            prev = prev->nextSibling;
-
-        if (prev)
-            prev->nextSibling = node->nextSibling;
-
-        if (node->data != nullptr)
-        {
-            kfree(node->data);
-        }
-
-        kfree(node);
-    }
-
-    FSNode *findNode(const char *name, FSNode *dir = nullptr, bool recursive = false)
-    {
-        if (dir == nullptr)
-        {
-            dir = current;
-        }
-        if (dir->firstChild == nullptr)
-        {
-            return nullptr;
-        }
-
-        FSNode *node = dir->firstChild;
-        FSNode *foundit;
-        while (node)
-        {
-            if (node->type == Folder && recursive)
-            {
-                foundit = findNode(name, node, true);
-                if (foundit != nullptr)
-                {
-                    return foundit;
-                }
-            }
-            if (streq(node->name, name))
-            {
-                return node;
-            }
-            node = node->nextSibling;
-        }
-
-        return nullptr;
-    }
-
-    FSNode *cloneNode(FSNode *node, FSNode *parent)
-    {
-        FSNode *copy =
-            createNode(
-                node->name,
-                node->type,
-                parent,
-                node->size,
-                node->data);
-
-        if (node->type == Folder)
-        {
-            FSNode *child = node->firstChild;
-            FSNode *lastCopy = nullptr;
-
-            while (child)
-            {
-                FSNode *childCopy =
-                    cloneNode(child, copy);
-
-                if (copy->firstChild == nullptr)
-                    copy->firstChild = childCopy;
-                else
-                    lastCopy->nextSibling = childCopy;
-
-                lastCopy = childCopy;
-                child = child->nextSibling;
-            }
-        }
-
-        return copy;
-    }
-
-    bool appendChild(FSNode* parent, FSNode* child)
-    {
-        if (parent == nullptr || child == nullptr)
-            return false;
-
-        if (parent->firstChild == nullptr)
-        {
-            parent->firstChild = child;
-            return true;
-        }
-
-        FSNode* last = parent->firstChild;
-
-        while (last->nextSibling)
-            last = last->nextSibling;
-
-        last->nextSibling = child;
-        return true;
-    }
+    
     void mkdir(const char *n)
     {
         /*print("root = ");
@@ -197,7 +52,7 @@ public:
             print("current OK\n");
         }*/
         bool err = false;
-        ParentResult p = resolveParent(n, err);
+        ParentResult p = resolveParent(n, root, current, err);
 
         if (err) {
             RAISE(FSError, ERR_PARENT_NOT_FOUND, false, n);
@@ -221,7 +76,7 @@ public:
         }
         else
         {
-            if (findNode(p.name, p.parent, false))
+            if (findNode(p.name, current, p.parent, false))
             {
                 RAISE(FSError, ERR_ALREADY_EXISTS, false, p.name);
                 return;
@@ -231,177 +86,12 @@ public:
         }
     }
 
-    FSNode* resolvePath(const char *path)
-    {
-        FSNode *node;
-
-        if (path[0] == '/')
-        {
-            node = root;
-            path++; // Skip the leading '/'
-        }
-        else
-        {
-            node = current;
-        }
-
-        char component[NAMESIZE];
-
-        while (*path != '\0')
-        {
-            // Skip repeated slashes
-            while (*path == '/')
-                path++;
-
-            if (*path == '\0')
-                break;
-
-            // Read one path component
-            int i = 0;
-
-            while (*path != '\0' && *path != '/')
-            {
-                if (i < NAMESIZE - 1)
-                    component[i++] = *path;
-
-                path++;
-            }
-
-            component[i] = '\0';
-            if (streq(component, "."))
-            {
-                continue;
-            }
-
-            if (streq(component, ".."))
-            {
-                if (node->parent != nullptr)
-                    node = node->parent;
-
-                continue;
-            }
-            // Find this child inside the current node
-            node = findNode(component, node, false);
-
-            if (node == nullptr)
-                return nullptr;
-        }
-
-        return node;
-    }
-
-
-    ParentResult resolveParent(const char* path, bool &err) {
-        err = false;
-        if (path == nullptr || *path == '\0') {
-            err = true;
-            return {};
-        }
-
-        FSNode *node;
-        ParentResult result{};
-        //print("err = ");
-        //print(err ? "true\n" : "false\n");
-        if (path[0] == '/')
-        {
-            node = root;
-            path++; // Skip the leading '/'
-            if (*path == '\0')
-            {
-                result.parent = root;
-                result.name[0] = '\0';   // No final component
-                return result;
-            }
-        }
-        else
-        {
-            node = current;
-        }
-
-        char component[NAMESIZE];
-        while (*path != '\0')
-        {
-            /*print("PATH: ");
-            print(path);
-            print("\n");*/
-            
-            // Skip repeated slashes
-            while (*path == '/')
-                path++;
-
-            // Read one path component
-            int i = 0;
-
-            while (*path != '\0' && *path != '/')
-            {
-                if (i < NAMESIZE - 1)
-                    component[i++] = *path;
-
-                path++;
-            }
-
-            component[i] = '\0';
-
-            /*print("COMPONENT: ");
-            print(component);
-            print("\n");*/
-            if (streq(component, "."))
-            {
-                continue;
-            }
-
-            if (streq(component, ".."))
-            {
-                if (node->parent != nullptr)
-                    node = node->parent;
-
-                continue;
-            }
-
-            while (*path == '/')
-                path++;
-    
-            if (*path == '\0') {
-                /*print("Last component: '");
-                print(component);
-                print("'\n");*/
-
-                result.parent = node;
-
-                memcpy(result.name, component, NAMESIZE);
-                result.name[NAMESIZE - 1] = '\0';
-
-                /*print("Returning name: '");
-                print(result.name);
-                print("'\n");*/
-
-                return result;
-            }
-            
-            // Find this child inside the current node
-            node = findNode(component, node, false);
-            //print(intToString(err));
-            if (node == nullptr) {
-                /*print("The parent directory does not exist\n");*/
-                err = true;
-                return {};
-            }
-            
-            if (node->type != Folder) {
-                err = true;
-                return {};
-            }
-        }
-        /*print("COMPONENT: ");
-        print(component);*/
-        err = true;
-        return {};
-    }
+                                                                                                
     void ls(const char *n)
     {
         // print("this = ");
         // print(hexToString((uint32_t)this));
-        FSNode* dir = resolvePath(n);
+        FSNode* dir = resolvePath(n, root, current);
         if (dir->firstChild == nullptr)
         {
             print("(empty)\n");
@@ -429,7 +119,7 @@ public:
     void cd(const char *n)
     {
 
-        FSNode* dir = resolvePath(n);
+        FSNode* dir = resolvePath(n, root, current);
 
         if (dir == nullptr) {
             RAISE(FSError, ERR_NULLPTR, false, n);
@@ -473,7 +163,7 @@ public:
     void create(const char *n)
     {
         bool err = false;
-        ParentResult p = resolveParent(n, err);
+        ParentResult p = resolveParent(n, root, current, err);
         if (err) {
             RAISE(FSError, ERR_RESOLVE, false, "");
             return;
@@ -493,7 +183,7 @@ public:
         }
         else
         {
-            if (findNode(p.name, p.parent, false))
+            if (findNode(p.name, current, p.parent, false))
             {
                 RAISE(FSError, ERR_ALREADY_EXISTS, false, "");
                 return;
@@ -505,7 +195,7 @@ public:
 
     void gettype(const char *n)
     {
-        FSNode* dir = resolvePath(n);
+        FSNode* dir = resolvePath(n, root, current);
         if (dir == nullptr)
         {
             RAISE(FSError, ERR_NULLPTR, false, n);
@@ -533,7 +223,7 @@ public:
             return;
         }
 
-        FSNode* file = resolvePath(filename);
+        FSNode* file = resolvePath(filename, root, current);
 
         if (file == nullptr)
         {
@@ -611,7 +301,7 @@ public:
             return;
         }
 
-        FSNode* file = resolvePath(filename);
+        FSNode* file = resolvePath(filename, root, current);
         if (file == nullptr)
         {
             RAISE(FSError, ERR_NULLPTR, false, filename);
@@ -640,7 +330,7 @@ public:
             RAISE(GenericError, ERR_INVALID_ARGS, false, "");
             return;
         }
-        FSNode* file = resolvePath(filename);
+        FSNode* file = resolvePath(filename, root, current);
 
         if (file == nullptr)
         {
@@ -666,7 +356,7 @@ public:
             return;
         }
 
-        FSNode *node = resolvePath(filename);
+        FSNode *node = resolvePath(filename, root, current);
 
         if (node == nullptr)
         {
@@ -694,7 +384,7 @@ public:
             return;
         }
 
-        FSNode *folderToRemove = resolvePath(dirname);
+        FSNode *folderToRemove = resolvePath(dirname, root, current);
         if (folderToRemove == nullptr)
         {
             RAISE(FSError, ERR_NULLPTR, false, dirname);
@@ -737,7 +427,7 @@ public:
 
     void rename(const char *name, const char *destiny)
     {
-        FSNode *node = resolvePath(name);
+        FSNode *node = resolvePath(name, root, current);
         if (node == nullptr)
         {
             RAISE(FSError, ERR_NULLPTR, false, name);
@@ -749,7 +439,7 @@ public:
 
     void copy(const char *name, const char *destiny)
     {
-        FSNode *node = resolvePath(name);
+        FSNode *node = resolvePath(name, root, current);
         if (node == nullptr && destiny == nullptr)
         {
             RAISE(GenericError, ERR_INVALID_ARGS, false, "");
@@ -757,7 +447,7 @@ public:
         }
         
         bool err = false;
-        ParentResult dest = resolveParent(destiny, err);
+        ParentResult dest = resolveParent(destiny, root, current, err);
         if (err) {
             RAISE(FSError, ERR_PARENT_NOT_FOUND, false, destiny);
             return;
@@ -768,7 +458,7 @@ public:
             RAISE(FSError, ERR_NOT_FOUND, false, name);
             return;
         }
-        if (findNode(dest.name, dest.parent, false) != nullptr)
+        if (findNode(dest.name, current, dest.parent, false) != nullptr)
         {
             RAISE(FSError, ERR_ALREADY_EXISTS, false, dest.name);
             return;
@@ -783,7 +473,7 @@ public:
         }
         else
         {
-           if (findNode(dest.name, dest.parent, false))
+           if (findNode(dest.name, current, dest.parent, false))
             {
                 RAISE(FSError, ERR_ALREADY_EXISTS, false, dest.name);
                 return;
@@ -795,7 +485,7 @@ public:
 
     void find(const char *name)
     {
-        FSNode *node = resolvePath(name);
+        FSNode *node = resolvePath(name, root, current);
         if (node == nullptr)
         {
             RAISE(FSError, ERR_NULLPTR, false, name);

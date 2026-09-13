@@ -11,7 +11,7 @@ using namespace FS;
     i += sizeof(uint32_t)
 // Use 4 bytes in a single byte array
 #define U4BISBA(r, i) *((uint32_t*)(r + i))
-PFSNode* FS::createPFSNode(Types type, const char* name, bool extension, PFSNode* child = nullptr) {
+PFSNode* createPFSNode(Types type, const char* name, bool extension, PFSNode* child = nullptr) {
     PFSNode* result = (PFSNode*)kmalloc(sizeof(PFSNode));
     result->type = type;
     strcpy(result->name, name);
@@ -22,7 +22,7 @@ PFSNode* FS::createPFSNode(Types type, const char* name, bool extension, PFSNode
     return result;
 }
 
-uint8_t* FS::encodePFSNode(PFSNode* node) {
+uint8_t* encodePFSNode(PFSNode* node) {
     uint8_t* result = (uint8_t*)kmalloc(SECTOR_SIZE);
     size_t length = node->name_size;
     int i = 0;

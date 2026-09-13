@@ -37,14 +37,27 @@ struct PFSNode {
     uint32_t sector;
     Types type;
     bool extension;
+    PFSNode* parent;
     PFSNode* child;
+    PFSNode* nextSibling;
+    uint32_t parent_sector;
     uint32_t child_sector;
 };
 
 struct PFSExtension { 
     PFSNode* parent;
-    uint32_t parent;
-    uint32_t sibling;
+    uint32_t parent_sector;
+    uint32_t sibling_sector;
     PFSExtension* sibling;
     char* content;
 };
+
+FSNode *createNode(const char *n, Types t, FSNode *p, uint32_t s, char *d = nullptr, FSNode *f = nullptr, FSNode *ns = nullptr);
+void destroyNode(FSNode *node);
+FSNode *findNode(const char *name, FSNode* current, FSNode *dir = nullptr, bool recursive = false);
+FSNode *cloneNode(FSNode *node, FSNode *parent);
+bool appendChild(FSNode* parent, FSNode* child);
+PFSNode* createPFSNode(Types, const char*, bool, PFSNode* child = nullptr);
+uint8_t* encodePFSNode(PFSNode* node);
+PFSNode* decodePFSNode(const uint8_t* metadata);
+PFSNode* findPFSNode(const char* n, PFSNode* current, PFSNode* dir = nullptr, bool recursive = false);

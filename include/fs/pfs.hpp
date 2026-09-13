@@ -5,10 +5,6 @@
 #define CURRENT_PFS_VERSION 0
 namespace FS {
 
-
-PFSNode* createPFSNode(Types, const char*, bool, PFSNode* child = nullptr);
-uint8_t* encodePFSNode(PFSNode* node);
-PFSNode* decodePFSNode(const uint8_t* metadata);
 PFSSuperblock* createSuperBlock(uint32_t root_lba, uint32_t total_sectors) {
     PFSSuperblock* superblock = (PFSSuperblock*)kmalloc(sizeof(PFSSuperblock));
     superblock->magic = PFS_MAGIC;
