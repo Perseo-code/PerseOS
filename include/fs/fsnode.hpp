@@ -20,6 +20,7 @@ struct FSNode {
 
 constexpr uint8_t MAX_NAMESIZE = 255;
 constexpr uint32_t PFS_MAGIC = 0xBADB01FF;
+constexpr uint32_t SECTOR_SIZE = 512;
 struct PFSSuperblock {
     uint32_t magic;
     uint32_t version;
@@ -37,11 +38,13 @@ struct PFSNode {
     uint32_t sector;
     Types type;
     bool extension;
+    bool children_loaded;
     PFSNode* parent;
     PFSNode* child;
     PFSNode* nextSibling;
     uint32_t parent_sector;
     uint32_t child_sector;
+    uint32_t sibling_sector;
 };
 
 struct PFSExtension { 
@@ -61,3 +64,4 @@ PFSNode* createPFSNode(Types, const char*, bool, PFSNode* child = nullptr);
 uint8_t* encodePFSNode(PFSNode* node);
 PFSNode* decodePFSNode(const uint8_t* metadata);
 PFSNode* findPFSNode(const char* n, PFSNode* current, PFSNode* dir = nullptr, bool recursive = false);
+void loadPFSNode(PFSNode* parent, ATA disk); 

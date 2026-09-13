@@ -1,6 +1,7 @@
 #include <fs/fsnode.hpp>
 #include <memory.hpp>
 #include <string.hpp>
+#include <drivers/ATA/ATA.hpp>
 FSNode *createNode(const char *n, Types t, FSNode *p, uint32_t s, char *d = nullptr, FSNode *f = nullptr, FSNode *ns = nullptr)
 {
     FSNode *node = (FSNode *)kmalloc(sizeof(FSNode));
@@ -172,4 +173,20 @@ PFSNode* findPFSNode(const char* name, PFSNode* dir, bool recursive = false) {
     }
 
     return nullptr;
+}
+
+void loadPFSNode(PFSNode* parent, ATA disk) {
+    if (parent->children_loaded) return;
+    uint32_t lba = parent->sector + 1;
+    uint8_t* raw = (uint8_t*)kmalloc(SECTOR_SIZE);
+    disk.read28(lba, raw);
+    PFSNode* child = decodePFSNode(raw);
+    parent->child = child;
+    while (!(child->sibling_sector <= child->sector)) {
+        lba++;
+        disk.read28(lba, raw);
+        child->nextSibling = decodePFSNode(raw);
+        child = child->nextSibling;
+    }
+    parent->children_loaded = true;
 }

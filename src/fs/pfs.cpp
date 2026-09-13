@@ -40,6 +40,10 @@ uint8_t* encodePFSNode(PFSNode* node) {
     U4BISBA(result, i) = node->sector;
     i += 4;
     U4BISBA(result, i) = node->child_sector;
+    i += 4;
+    U4BISBA(result, i) = node->parent_sector;
+    i += 4;
+    U4BISBA(result, i) = node->sibling_sector;
     return result;
 }
 
@@ -58,6 +62,8 @@ PFSNode* decodePFSNode(const uint8_t* metadata) {
     C4BUUI(result->file_size, metadata, i);
     C4BUUI(result->sector, metadata, i);
     C4BUUI(result->child_sector, metadata, i);
+    C4BUUI(result->parent_sector, metadata, i);
+    C4BUUI(result->sibling_sector, metadata, i);
     return result;
 }
 
@@ -106,4 +112,5 @@ void PFS::mount() {
     disk.read28(lba, buffer);
     root = decodePFSNode(buffer);
     current = root;
+    loadPFSNode(root, disk);
 }
