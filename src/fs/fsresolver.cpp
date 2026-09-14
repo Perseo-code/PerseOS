@@ -168,57 +168,43 @@ ParentResult resolveParent(const char* path, FSNode* root, FSNode* current, bool
 
 
 PFSNode* resolvePFSPath(const char* path, PFSNode* root, ATA* disk, PFSNode* current) {
-    PFSNode* node;
-    if (path[0] == '/')
-    {
-        node = root;    
-        path++; // Skip the leading '/'
-    }
-    else
-    {
-        node = current;
-    }
+    if (path == nullptr || *path == '\0') return nullptr;
+
+    PFSNode* node = (path[0] == '/') ? root : current;
 
     char component[NAMESIZE];
 
-    while (*path != '\0')
-    {
-        // Skip repeated slashes
-        while (*path == '/')
-            path++;
+    while (*path != '\0') {
+        while (*path == '/') path++;
+        if (*path == '\0') break;
 
-        if (*path == '\0')
-            break;
-
-        // Read one path component
         int i = 0;
-
-        while (*path != '\0' && *path != '/')
-        {
-            if (i < NAMESIZE - 1)
+        while (*path != '\0' && *path != '/') {
+            if (i < NAMESIZE - 1) {
                 component[i++] = *path;
-
+            }
             path++;
         }
-
         component[i] = '\0';
-        if (streq(component, "."))
-        {
+
+        // Manejo de rutas relativas
+        if (streq(component, ".")) {
             continue;
         }
 
-        if (streq(component, ".."))
-        {
-            if (node->parent != nullptr)
+        if (streq(component, "..")) {
+            if (node->parent != nullptr) {
                 node = node->parent;
-
+            }
             continue;
         }
-        // Find this child inside the current node
-        node = findPFSNode(component, node, disk, false);
 
-        if (node == nullptr)
+        loadPFSNode(node, disk);
+
+        node = findPFSNode(component, node, disk, false);
+        if (node == nullptr) {
             return nullptr;
+        }
     }
 
     return node;
@@ -231,102 +217,60 @@ PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* curre
         return {};
     }
 
-    PFSNode *node;
-    PFSParentResult result{};
-    //print("err = ");
-    //print(err ? "true\n" : "false\n");
-    if (path[0] == '/')
-    {
-        node = root;
-        path++; // Skip the leading '/'
-        if (*path == '\0')
-        {
-            result.parent = root;
-            result.name[0] = '\0';   // No final component
-            return result;
-        }
-    }
-    else
-    {
-        node = current;
+    PFSNode* node = (path[0] == '/') ? root : current;
+    
+
+    if (path[0] == '/' && (path[1] == '\0' || (path[1] == '/' && path[2] == '\0'))) {
+        PFSParentResult res{};
+        res.parent = root;
+        res.name[0] = '\0';
+        return res;
     }
 
     char component[NAMESIZE];
-    while (*path != '\0')
-    {
-        /*print("PATH: ");
-        print(path);
-        print("\n");*/
-        
-        // Skip repeated slashes
-        while (*path == '/')
-            path++;
+    char last_component[NAMESIZE];
+    last_component[0] = '\0';
 
-        // Read one path component
+    while (*path != '\0') {
+        while (*path == '/') path++;
+        if (*path == '\0') break;
+
         int i = 0;
-
-        while (*path != '\0' && *path != '/')
-        {
-            if (i < NAMESIZE - 1)
+        while (*path != '\0' && *path != '/') {
+            if (i < NAMESIZE - 1) {
                 component[i++] = *path;
-
+            }
             path++;
         }
-
         component[i] = '\0';
 
-        /*print("COMPONENT: ");
-        print(component);
-        print("\n");*/
-        if (streq(component, "."))
-        {
+        if (streq(component, ".")) continue;
+
+        if (streq(component, "..")) {
+            if (node->parent != nullptr) node = node->parent;
             continue;
         }
 
-        if (streq(component, ".."))
-        {
-            if (node->parent != nullptr)
-                node = node->parent;
+        const char* next_check = path;
+        while (*next_check == '/') next_check++;
 
-            continue;
+        if (*next_check == '\0') {
+            PFSParentResult res{};
+            res.parent = node;
+            memcpy(res.name, component, NAMESIZE);
+            res.name[NAMESIZE - 1] = '\0';
+            return res;
         }
 
-        while (*path == '/')
-            path++;
-
-        if (*path == '\0') {
-            /*print("Last component: '");
-            print(component);
-            print("'\n");*/
-
-            result.parent = node;
-
-            memcpy(result.name, component, NAMESIZE);
-            result.name[NAMESIZE - 1] = '\0';
-
-            /*print("Returning name: '");
-            print(result.name);
-            print("'\n");*/
-
-            return result;
-        }
-        
-        // Find this child inside the current node
+        loadPFSNode(node, disk);
         node = findPFSNode(component, node, disk, false);
-        //print(intToString(err));
-        if (node == nullptr) {
-            /*print("The parent directory does not exist\n");*/
-            err = true;
-            return {};
-        }
-        
-        if (node->type != Folder) {
+
+        if (node == nullptr || node->type != Folder) {
             err = true;
             return {};
         }
     }
-    /*print("COMPONENT: ");
-    print(component);*/
+
     err = true;
     return {};
 }

@@ -177,30 +177,74 @@ PFSNode* findPFSNode(const char* name, PFSNode* dir, ATA* disk, bool recursive =
 
 void loadPFSNode(PFSNode* parent, ATA* disk) {
     if (parent->children_loaded) return;
-    uint32_t lba = parent->sector + 1;
+    if (!parent->has_children) return;
+    uint32_t lba = parent->child_sector;
     uint8_t* raw = (uint8_t*)kmalloc(SECTOR_SIZE);
     if (raw == nullptr) return;
     disk->read28(lba, raw);
     PFSNode* child = decodePFSNode(raw);
+    if (child == nullptr) {
+        parent->children_loaded = false;
+        kfree(raw);
+        return;
+    }
     parent->child = child;
-    while (true) {
-        if (child->sibling_sector == 0) break;
+    while (child->sibling_sector != 0) {
         lba = child->sibling_sector;
         disk->read28(lba, raw);
         child->nextSibling = decodePFSNode(raw);
+        if (child->nextSibling == nullptr) break;
         child = child->nextSibling;
     }
     parent->children_loaded = true;
     kfree(raw);
 }
 
-bool appendPFSChild(PFSNode* parent, PFSNode* child) {
+void freePFSNode(PFSNode* node) {
+    if (node->parent == nullptr) {
+        return;
+    }
+    if (node->extension == true) {
+        kfree(node->extension_child);
+    }
+    PFSNode* parent = node->parent;
+    if (parent->child == node) {
+        parent->child = node->nextSibling;
+        kfree(node);
+        return;
+    }
+    PFSNode* prev = parent->child;
+    while (prev && prev->nextSibling != node) {
+        prev = prev->nextSibling;
+    }
+
+    if (prev)
+        prev->nextSibling = node->nextSibling;
+    
+    kfree(node);
+}
+
+bool appendPFSChild(PFSNode* parent, PFSNode* child, ATA* disk) {
     if (parent == nullptr || child == nullptr)
         return false;
+    
+    loadPFSNode(parent, disk);
+
+
+    child->parent = parent;
+    child->parent_sector = parent->sector;
 
     if (parent->child == nullptr)
     {
+        parent->has_children = true;
         parent->child = child;
+        parent->child_sector = child->sector;
+        uint8_t* raw_parent = encodePFSNode(parent);
+        uint8_t* raw_child = encodePFSNode(child);
+        disk->write28(parent->sector, raw_parent);
+        disk->write28(child->sector, raw_child);
+        kfree(raw_parent);
+        kfree(raw_child);
         return true;
     }
 
@@ -209,6 +253,13 @@ bool appendPFSChild(PFSNode* parent, PFSNode* child) {
     while (last->nextSibling)
         last = last->nextSibling;
 
+    last->sibling_sector = child->sector; 
     last->nextSibling = child;
+    uint8_t* raw_last = encodePFSNode(last);
+    uint8_t* raw_child = encodePFSNode(child);
+    disk->write28(last->sector, raw_last);
+    disk->write28(child->sector, raw_child);
+    kfree(raw_last);
+    kfree(raw_child);
     return true;
 }
