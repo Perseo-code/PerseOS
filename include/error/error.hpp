@@ -22,7 +22,7 @@ typedef enum {
     ERR_NOT_FOUND,
     ERR_ALREADY_EXISTS,
     ERR_PARENT_NOT_FOUND,
-
+    ERR_COULD_NOT_OPEN,
     /* Node type */
     ERR_NOT_A_FILE,
     ERR_NOT_A_FOLDER,
@@ -44,6 +44,7 @@ typedef enum {
     ERR_SAME_SOURCE_DESTINATION,
     ERR_COPY_INTO_SELF,
     ERR_MOVE_INTO_SELF,
+
     // Resolve Err
     ERR_RESOLVE,
     ERR_NULLPTR,

@@ -12,6 +12,10 @@ void init() {
     heap_init();
     asm volatile ("sti"); // Enable interruptions
     ramfs.init();
+    is_ramfs = true;
+    ATA disk;
+    if (!disk.init()) return;
+    persistent_filesystem.init(disk);
 }
 
 extern "C" void kernel_main() {

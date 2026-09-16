@@ -45,6 +45,7 @@ struct PFSNode {
     PFSNode* child;
     PFSExtension* extension_child;
     PFSNode* nextSibling;
+    Mode mode;
     uint32_t parent_sector;
     uint32_t child_sector;
     uint32_t sibling_sector;

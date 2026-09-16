@@ -40,7 +40,11 @@ inline void clear(ParsedCommand&) {
 }
 
 inline void list(ParsedCommand& n) {
-    ramfs.ls(n.argv[0]);
+    if (is_ramfs) {
+        ramfs.ls(n.argv[0]);
+    } else {
+        persistent_filesystem.ls(n.argv[0]);
+    }
 }
 
 inline void makedir(ParsedCommand& n) {
@@ -105,6 +109,14 @@ inline void millis(ParsedCommand& n) {
 inline void seconds(ParsedCommand& n) {
     print(intToString(Time::seconds()));
 }
+
+inline void ccfs(ParsedCommand& n) {
+    is_ramfs = !is_ramfs;
+    print("Changed FS to:");
+    print(is_ramfs ? "RamFS" : "Persistent Filesystem");
+}
+
+inline bool is_ramfs;
 
 inline CMD commands[] = {
     { help, "help", "Show this message"},

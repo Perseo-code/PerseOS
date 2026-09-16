@@ -1,5 +1,6 @@
 #pragma once
 #include <drivers/vga/vga.hpp>
+#include <drivers/ATA/ATA.hpp>
 #include <stdint.hpp>
 #include <string.hpp>
 #include <idt/idt.hpp>
@@ -7,4 +8,5 @@
 #include <shell.hpp>
 #include <paging/paging.hpp>
 #include <fs/ramfs.hpp>
+#include <fs/pfs.hpp>
 #include <timer/timer.hpp>

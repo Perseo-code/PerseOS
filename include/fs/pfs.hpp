@@ -28,7 +28,8 @@ private:
     PFSNode* current;
     uint32_t lba;
 public:
-    PFS(ATA disk) : disk(disk) {
+    void init(ATA disk) {
+        this->disk = disk;
         lba = 0;
         superblock = nullptr;
         root = nullptr;
@@ -37,6 +38,10 @@ public:
     void format();
     void mount();
     void create(const char* path);
-    void open(const char* path, Mode mode);
+    PFSNode* open(const char* path, Mode mode);
+    void mdir(const char* path);
+    void ls(const char* path);
 };
 }
+
+inline FS::PFS persistent_filesystem;
