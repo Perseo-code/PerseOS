@@ -178,7 +178,7 @@ PFSNode* findPFSNode(const char* name, PFSNode* dir, ATA* disk, bool recursive) 
 void loadPFSNode(PFSNode* parent, ATA* disk) {
     if (parent == nullptr) return;
     if (parent->children_loaded) return;
-    if (!parent->has_children) return;
+    if (!parent->has_children) return;  
     uint32_t lba = parent->child_sector;
     uint8_t* raw = (uint8_t*)kmalloc(SECTOR_SIZE);
     if (raw == nullptr) return;

@@ -133,6 +133,7 @@ PFSSuperblock* decodeSuperblock(const uint8_t* metadata) {
 }
 
 void PFS::format() {
+    print("Starting format.\n");
     lba = 1;
     print("Creating Superblock...");
     superblock = createSuperBlock(lba++, disk->getTotalSectors());
@@ -160,7 +161,7 @@ void PFS::mount() {
     superblock = decodeSuperblock(buffer);
     if (superblock->magic != PFS_MAGIC) {superblock->valid = false; return;}
     lba++;
-    disk->read28(lba, buffer);
+    disk->read28(superblock->root_lba, buffer);
     root = decodePFSNode(buffer);
     current = root;
     loadPFSNode(root, disk);

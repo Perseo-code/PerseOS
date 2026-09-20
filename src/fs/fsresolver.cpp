@@ -199,8 +199,9 @@ PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current, ATA* 
             continue;
         }
 
-        loadPFSNode(node, disk);
-
+        if (node->type == Folder) {
+            loadPFSNode(node, disk);
+        }
         node = findPFSNode(component, node, disk, false);
         if (node == nullptr) {
             return nullptr;
