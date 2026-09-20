@@ -13,8 +13,9 @@ void init() {
     asm volatile ("sti"); // Enable interruptions
     ramfs.init();
     is_ramfs = true;
-    ATA disk;
-    if (!disk.init()) return;
+    ATA* disk = (ATA*)kmalloc(sizeof(ATA));
+
+    disk->init();
     persistent_filesystem.init(disk);
 }
 

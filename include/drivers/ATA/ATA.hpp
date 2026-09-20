@@ -3,7 +3,7 @@
 #include <error/error.hpp>
 #include <stdint.hpp>
 #include <timer/timer.hpp>
-#define DEFAULT_ATA_TIMEOUT 15000
+#define DEFAULT_ATA_TIMEOUT 1000
 #define DEFAULT_ATA_RWAIT_TIME 5
 enum ATAResult {
     ATA_OK,
@@ -13,7 +13,7 @@ enum ATAResult {
 };
 
 
-constexpr uint16_t SECTOR_SIZE = 512;
+constexpr uint32_t SECTOR_SIZE = 512;
 
 // Every port for ATA
 constexpr uint16_t ATA_DATA_PORT = 0x1F0;
@@ -46,38 +46,45 @@ private:
     }
 
     void setLBAbits(uint32_t lba) {
-        outb(ATA_DRIVE_HEAD_SELECT, 0xE0 | ((lba >> 24) & 0x0F));
+        outb(ATA_DRIVE_HEAD_SELECT, (uint8_t)(0xE0 | ((lba >> 24) & 0x0F)));
         outb(ATA_SECTOR_COUNT, 1);
-        outb(ATA_LBA_LOW, lba & 0xFF);
-        outb(ATA_LBA_MID, (lba >> 8) & 0xFF);
-        outb(ATA_LBA_HIGH, (lba >> 16) & 0xFF);
+        outb(ATA_LBA_LOW, (uint8_t)(lba & 0xFF));
+        outb(ATA_LBA_MID, (uint8_t)((lba >> 8) & 0xFF));
+        outb(ATA_LBA_HIGH, (uint8_t)((lba >> 16) & 0xFF));
     }
 
     void ataWait() { 
-        Time::resetTimer();
-        while (Time::getTimer() < DEFAULT_ATA_RWAIT_TIME);
-    }
+        inb(ATA_CMD_PORT);
+        inb(ATA_CMD_PORT);
+        inb(ATA_CMD_PORT);
+        inb(ATA_CMD_PORT);
+    }   
 
     ATAResult waitForDRQ() {
+        print("Executing waitForDRQ\n");
         ataWait();
+        print("finished ATA wait");
         Time::resetTimer();
         // We only break out when BUSY clears AND DATA REQUEST becomes active.
         while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) {
             uint8_t status = inb(ATA_CMD_PORT);
-    
+            print("Started loop\n");
             if (status & ATA_SR_DF) {
+                print("Device fault\n");
                 return ATA_DEV_FAULT;
             }
 
             if (status & ATA_SR_ERR) {
+                print("Device Error\n");
                 return ATA_ERR;
             }
 
             if (!(status & ATA_SR_BSY) && (status & ATA_SR_DRQ)) {
+                print("Works okay\n");
                 return ATA_OK;
             }
         }
-        
+        print("Timed out \n");
         return ATA_TIMEOUT; // Timeout!
     }
 public:
@@ -94,13 +101,14 @@ public:
         uint8_t status = inb(ATA_CMD_PORT);
         if (status == 0) {
             device_found = false;
+            RAISE(DeviceError, ERR_DEVICE_NOT_FOUND, false, "Couldn't find the ATA disk");
             return false; 
         }
 
         // Wait for drive to finish processing
         Time::resetTimer();
 
-        while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) { // Each tick is 100ns
+        while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) {
             status = inb(ATA_CMD_PORT);
             if (!(status & ATA_SR_BSY)) {
                 break;
@@ -180,19 +188,26 @@ public:
     }
 
     void write28(uint32_t lba, const uint8_t* buffer) {
+        print("Write process requested\n");
         if (lba > 0x0FFFFFFF) {
             RAISE(DeviceError, ERR_DEVICE_WRITE_FAILED, false,
                 "LBA exceeds ATA LBA28 range");
             return;
         }
-
+        print("Checking wether the device exists...");
         if (!device_found) {
             RAISE(DeviceError, ERR_DEVICE_NOT_FOUND, false, "ATA Device Not found");
             return;
         }
+        print(" Done\n");
+        print("Setting up lba...");
         setLBAbits(lba);
+        print(" Done\n");
+        print("Requesting the write using the port...");
         outb(ATA_CMD_PORT, ATA_CMD_WRITE);
+        print(" Done\n");
         ATAResult n = waitForDRQ();
+        print("After waitfordrq\n");
         if (n != ATA_OK) {
             // uint8_t err_reg = inb(ATA_ERRFEAT_PORT); // Read why it failed
             if (n == ATA_ERR)
@@ -206,9 +221,14 @@ public:
                     "ATA Drive Timed Out");
             return;
         }
-        const uint16_t* ptr = (uint16_t*) buffer;
+        print("Starting to write.\n");
+        const uint16_t* ptr = (uint16_t*)buffer;
         for (int i = 0; i < 256; i++) {
+            print("Writing word ");
+            print(intToString(i));
+            print("...");
             outw(ATA_DATA_PORT, ptr[i]);
+            print(" Done\n");
         }
         cacheFlush(); // CACHE FLUSH
     }

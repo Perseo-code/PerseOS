@@ -1,7 +1,7 @@
 #include <timer/timer.hpp>
 #include <io/io.hpp>
-volatile uint32_t time = 0;
-
+volatile uint32_t globalTime = 0;
+volatile uint32_t localTimer = 0;
 void PIT::init(uint16_t frequency) {
     constexpr uint32_t PIT_FREQ = 1193182;
     // Relationship: PIT frequency = 1,193,182 / divisor
@@ -28,17 +28,26 @@ void PIT::init(uint16_t frequency) {
 }
 
 void Time::millis() {
-    time++;
+    globalTime++;
+    localTimer++;
 }
 
 uint32_t Time::seconds() {
-    return time / 1000;
+    return globalTime / 1000;
 }
 
-uint32_t Time::getTimer() {
-    return time;
+uint32_t Time::localSeconds() {
+    return localTimer / 1000;
+}
+
+uint32_t Time::getGlobalTimer() {
+    return globalTime;
 } 
 
+uint32_t Time::getTimer() {
+    return localTimer;
+}
+
 void Time::resetTimer() {
-    time = 0;
+    localTimer = 0;
 }

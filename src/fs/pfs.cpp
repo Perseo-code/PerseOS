@@ -1,5 +1,4 @@
 #include <fs/pfs.hpp>
-#include <memory.hpp>
 #include <fs/fsresolver.hpp>
 #include <error/error.hpp>
 #include <drivers/vga/vga.hpp>
@@ -17,20 +16,26 @@ using namespace FS;
     ((uint32_t)(buf)[(idx) + 2] << 16) | \
     ((uint32_t)(buf)[(idx) + 3] << 24)   \
 )
-PFSNode* createPFSNode(Types type, const char* name, bool extension, PFSNode* parent = nullptr) {
-    PFSNode* result = (PFSNode*)kmalloc(sizeof(PFSNode));
+PFSNode* createPFSNode(Types type, const char* name, bool extension, PFSNode* parent, Mode mode, uint32_t &lba, ATA* disk) {
+    PFSNode* result = (PFSNode*)kmalloc(sizeof(PFSNode)); 
     if (parent != nullptr) {
-        result->parent = parent;
-        parent->has_children = true;
-        result->parent_sector = parent->sector;
+        result->has_children = false;
+        appendPFSChild(parent, result, disk);
     } else {
         result->parent = nullptr;
+        result->has_children = true;
+        result->parent_sector = 0;
+        result->sibling_sector = 0;
     }
     result->type = type;
     strcpy(result->name, name);
-    result->name_size = strlen(name);
+    result->name_size = strlen(name) + 1;
     result->file_size = 0;
     result->extension = extension;
+    result->sector = lba;
+    result->child_sector = 0;
+    result->children_loaded = false;
+    result->mode = mode;
     return result;
 }
 
@@ -82,10 +87,12 @@ PFSNode* decodePFSNode(const uint8_t* metadata) {
     result->sibling_sector = READ_U32_LE(metadata, i);
 
     i = 0;
-    while (i < result->name_size) {
+    while (i < result->name_size - 1) {
         result->name[i] = metadata[i];
         i++;
     }
+
+    result->name[i] = '\0';
 
     return result;
 }
@@ -127,31 +134,40 @@ PFSSuperblock* decodeSuperblock(const uint8_t* metadata) {
 
 void PFS::format() {
     lba = 1;
-    superblock = createSuperBlock(lba++, disk.getTotalSectors());
-    root = createPFSNode(Folder, "/", false);
+    print("Creating Superblock...");
+    superblock = createSuperBlock(lba++, disk->getTotalSectors());
+    print(" Done\n");
+    print("Creating root...");
+    root = createPFSNode(Folder, "/", false, nullptr, ReadWrite, lba, disk);
+    print(" Done\n");
     current = root;
+    print("Encoding superblock...");
     uint8_t* buffer = encodeSuperblock(superblock);
-    disk.write28(1, buffer);
-    buffer = encodePFSNode(root);
-    disk.write28(superblock->root_lba, buffer);
+    print(" Done\n");
+    print("Writing superblock to disk...");
+    disk->write28(lba, buffer); lba++;
+    print(" Done\n");
+    print("Writing root folder to disk...");
+    writePFSNode(root, lba, disk);
+    print(" Done\n");
     lba++;
 }
 
 void PFS::mount() {
     lba = 1;
     uint8_t* buffer = (uint8_t*)kmalloc(SECTOR_SIZE);
-    disk.read28(lba, buffer);
+    disk->read28(lba, buffer);
     superblock = decodeSuperblock(buffer);
     if (superblock->magic != PFS_MAGIC) {superblock->valid = false; return;}
     lba++;
-    disk.read28(lba, buffer);
+    disk->read28(lba, buffer);
     root = decodePFSNode(buffer);
     current = root;
-    loadPFSNode(root, &disk);
+    loadPFSNode(root, disk);
 }
 
-void PFS::create(const char* path) {
-    PFSParentResult result = resolvePFSParent(path, root, current, &disk);
+void PFS::create(const char* path, Mode mode) {
+    PFSParentResult result = resolvePFSParent(path, root, current, disk);
     if (result.err == true) {
         RAISE(FSError, ERR_RESOLVE, false, "Could not resolve the path to the parent");
         return;
@@ -161,39 +177,39 @@ void PFS::create(const char* path) {
         return;
     }
 
-    PFSNode* newFile = createPFSNode(File, result.name, false);
+    PFSNode* newFile = createPFSNode(File, result.name, false, nullptr, mode, lba, disk);
     if (result.parent->child == nullptr)
     {
         result.parent->child = newFile;
     }
     else
     {
-        if (findPFSNode(result.name, result.parent, &disk, false))
+        if (findPFSNode(result.name, result.parent, disk, false))
         {
             RAISE(FSError, ERR_ALREADY_EXISTS, false, "");
             return;
         }
 
-        appendPFSChild(result.parent, newFile);
+        appendPFSChild(result.parent, newFile, disk);
     }
 
-    writePFSNode(result.parent, lba, &disk);
-    writePFSNode(newFile, lba, &disk);
+    writePFSNode(result.parent, lba, disk);
+    writePFSNode(newFile, lba, disk);
 }
 
 PFSNode* PFS::open(const char* path, Mode m) {
-    PFSNode* node = resolvePFSPath(path, root, current, &disk);
+    PFSNode* node = resolvePFSPath(path, root, current, disk);
     if (node == nullptr) {
         RAISE(FSError, ERR_COULD_NOT_OPEN, false, "Couldn't open file");
-        return;
+        return nullptr;
     }
 
     node->mode = m;
     return node;
 }
 
-void PFS::mdir(const char* path) {
-    PFSParentResult node = resolvePFSParent(path, root, current, &disk);
+void PFS::mdir(const char* path, Mode mode) {
+    PFSParentResult node = resolvePFSParent(path, root, current, disk);
     if (node.err) {
         RAISE(FSError, ERR_RESOLVE, false, "Resolve failed");
         return;
@@ -203,7 +219,7 @@ void PFS::mdir(const char* path) {
         return;
     }
 
-    PFSNode* newFolder = createPFSNode(Folder, node.name, false);
+    PFSNode* newFolder = createPFSNode(Folder, node.name, false, node.parent, mode, lba, disk);
     if (newFolder == nullptr) {
         RAISE(FSError, ERR_NULLPTR, false, "Couldn't create new folder");
         return;
@@ -211,26 +227,32 @@ void PFS::mdir(const char* path) {
     if (node.parent->child == nullptr) {
         node.parent->child = newFolder;
     } else {
-        if (findPFSNode(node.name, node.parent, &disk)) {
+        if (findPFSNode(node.name, node.parent, disk)) {
             RAISE(FSError, ERR_ALREADY_EXISTS, false, "The folder already exists. Name it differently");
             return;
         }
 
-        appendPFSChild(node.parent, newFolder);
+        appendPFSChild(node.parent, newFolder, disk);
     }
 
-    writePFSNode(node.parent, lba, &disk);
-    writePFSNode(newFolder, lba, &disk);
+    writePFSNode(node.parent, lba, disk);
+    writePFSNode(newFolder, lba, disk);
 }
 
 void PFS::ls(const char* path) {
-    PFSNode* result = resolvePFSPath(path, root, current, &disk);
-    if (result == nullptr && result->type == Folder) {
-        print("(empty)\n");
+    PFSNode* result = resolvePFSPath(path, root, current, disk);
+
+    if (result == nullptr) {
+        RAISE(FSError, ERR_NULLPTR, false, "Couldn't find any PFSNodes in memory!!");
         return;
     }
     if (result->type == File) {
         print(result->name);
+        return;
+    }
+
+    if (result->type == Folder && result->child == nullptr) {
+        print("(empty)\n");
         return;
     }
     PFSNode* last = result->child;

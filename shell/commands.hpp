@@ -5,6 +5,7 @@
 #include "error/error.hpp"
 #include <memory.hpp>
 #include <timer/timer.hpp>
+#include <fs/pfs.hpp>
 #define MAX_ARGS 15
 #define MAX_ARG_LENGTH 64
 #define MAX_ARGS_LENGTH 224
@@ -26,6 +27,8 @@ struct CMD {
     const char* description;
 };
 
+inline bool is_ramfs;
+
 // Remember, the pointers AFTER the functions
 void help(ParsedCommand&);
 void man(ParsedCommand&);
@@ -45,6 +48,19 @@ inline void list(ParsedCommand& n) {
     } else {
         persistent_filesystem.ls(n.argv[0]);
     }
+}
+
+inline void format(ParsedCommand& n) {
+    persistent_filesystem.format();
+}
+
+inline void mount(ParsedCommand& n) {
+    persistent_filesystem.mount();
+    is_ramfs = false;
+}
+
+inline void umount(ParsedCommand& n) {
+    is_ramfs = true;
 }
 
 inline void makedir(ParsedCommand& n) {
@@ -103,20 +119,20 @@ inline void find(ParsedCommand& n) {
 }
 
 inline void millis(ParsedCommand& n) {
-    print(intToString(Time::getTimer()));
+    print(intToString(Time::getGlobalTimer()));
+    print("\n");
 }
 
 inline void seconds(ParsedCommand& n) {
     print(intToString(Time::seconds()));
+    print("\n");
 }
 
-inline void ccfs(ParsedCommand& n) {
-    is_ramfs = !is_ramfs;
-    print("Changed FS to:");
-    print(is_ramfs ? "RamFS" : "Persistent Filesystem");
+inline void exists(ParsedCommand& n) {
+    print(persistent_filesystem.disk_exists() ? "The disk exists" : "The disk does not exist");
+    print("\n");
 }
 
-inline bool is_ramfs;
 
 inline CMD commands[] = {
     { help, "help", "Show this message"},
@@ -140,7 +156,11 @@ inline CMD commands[] = {
     { mem, "mem", "Gives data about the allocated memory" },
     { find, "find", "Look for a file/folder. Args: find <file/folder>"},
     { millis, "millis", "Shows the time variable."},
-    { seconds, "seconds", "Shows the time variable but in seconds."}
+    { seconds, "seconds", "Shows the time variable but in seconds."},
+    { exists, "exists", "Says if the ATA device exists or not"},
+    { format, "format", "Formats the device to get a PFS ready"},
+    { mount, "mount", "Mount the ATA device" },
+    { umount, "umount", "Go back to RamFS"}
 };
 
 constexpr size_t CMDS =

@@ -55,6 +55,7 @@ inline const char* FSMsg[FS_END] = {
     "Not Found",
     "Already Exists",
     "Parent not found",
+    "Could not open file",
     "Not a file",
     "Not a folder",
     "Directory not empty",
@@ -171,10 +172,6 @@ class FSError : Error {
     string args;
     void print_err(string msg) {
         print(msg);
-        if (args.empty()) {
-            print("\n");
-            return;
-        }
         print(" : ");
         print(args);
         print("\n");

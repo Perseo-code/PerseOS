@@ -167,7 +167,7 @@ ParentResult resolveParent(const char* path, FSNode* root, FSNode* current, bool
 }
 
 
-PFSNode* resolvePFSPath(const char* path, PFSNode* root, ATA* disk, PFSNode* current) {
+PFSNode* resolvePFSPath(const char* path, PFSNode* root, PFSNode* current, ATA* disk) {
     if (path == nullptr || *path == '\0') return nullptr;
 
     PFSNode* node = (path[0] == '/') ? root : current;
@@ -210,10 +210,11 @@ PFSNode* resolvePFSPath(const char* path, PFSNode* root, ATA* disk, PFSNode* cur
     return node;
 }
 
-PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current, ATA* disk, bool &err) {
-    err = false;
+PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* current, ATA* disk) {
+    PFSParentResult res{};
+    res.err = false;
     if (path == nullptr || *path == '\0') {
-        err = true;
+        res.err = true;
         return {};
     }
 
@@ -221,7 +222,6 @@ PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* curre
     
 
     if (path[0] == '/' && (path[1] == '\0' || (path[1] == '/' && path[2] == '\0'))) {
-        PFSParentResult res{};
         res.parent = root;
         res.name[0] = '\0';
         return res;
@@ -266,11 +266,11 @@ PFSParentResult resolvePFSParent(const char* path, PFSNode* root, PFSNode* curre
         node = findPFSNode(component, node, disk, false);
 
         if (node == nullptr || node->type != Folder) {
-            err = true;
+            res.err = true;
             return {};
         }
     }
 
-    err = true;
+    res.err = true;
     return {};
 }

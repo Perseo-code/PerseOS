@@ -2,6 +2,7 @@
 #include <stdint.hpp>
 #include <stddef.hpp>
 #include <drivers/ATA/ATA.hpp>
+
 #define NAMESIZE 32
 constexpr size_t MAX_FILE_SIZE = 4096; // 4 KiB
 typedef enum Types : bool {
@@ -19,9 +20,14 @@ struct FSNode {
     uint32_t size;
 };
 
+enum Mode {
+    ReadOnly,
+    ReadWrite,
+    Append
+};
+
 constexpr uint8_t MAX_NAMESIZE = 255;
 constexpr uint32_t PFS_MAGIC = 0xBADB01FF;
-constexpr uint32_t SECTOR_SIZE = 512;
 struct PFSSuperblock {
     uint32_t magic;
     uint32_t version;
@@ -31,6 +37,8 @@ struct PFSSuperblock {
 
     bool valid;
 };
+
+struct PFSExtension;
 
 struct PFSNode {
     char name[MAX_NAMESIZE];
@@ -64,9 +72,9 @@ void destroyNode(FSNode *node);
 FSNode *findNode(const char *name, FSNode* current, FSNode *dir = nullptr, bool recursive = false);
 FSNode *cloneNode(FSNode *node, FSNode *parent);
 bool appendChild(FSNode* parent, FSNode* child);
-PFSNode* createPFSNode(Types, const char*, PFSNode* parent, bool);
+PFSNode* createPFSNode(Types, const char*, bool, Mode mode, uint32_t &lba, ATA* disk, PFSNode* parent = nullptr);
 uint8_t* encodePFSNode(PFSNode* node);
 PFSNode* decodePFSNode(const uint8_t* metadata);
 PFSNode* findPFSNode(const char* n, PFSNode* dir, ATA* disk, bool recursive = false);
 void loadPFSNode(PFSNode* parent, ATA* disk); 
-bool appendPFSChild(PFSNode* parent, PFSNode* child);
+bool appendPFSChild(PFSNode* parent, PFSNode* child, ATA* disk);
