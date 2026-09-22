@@ -43,6 +43,8 @@ void pic_sendEOI(uint8_t irq)
     outb(PIC1_COMMAND, 0x20);
 }
 
+volatile uint32_t irq0Count = 0;
+
 extern "C" void irq_handler(Registers* regs) {
     uint32_t irq = regs->int_no - 32;
 
@@ -50,6 +52,7 @@ extern "C" void irq_handler(Registers* regs) {
     {
         case 0:
             Time::millis();
+            irq0Count++;
             break;
 
         case 1:

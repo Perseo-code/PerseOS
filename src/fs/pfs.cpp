@@ -134,9 +134,9 @@ PFSSuperblock* decodeSuperblock(const uint8_t* metadata) {
 
 void PFS::format() {
     print("Starting format.\n");
-    lba = 1;
+    lba = 2;
     print("Creating Superblock...");
-    superblock = createSuperBlock(lba++, disk->getTotalSectors());
+    superblock = createSuperBlock(lba, disk->getTotalSectors());
     print(" Done\n");
     print("Creating root...");
     root = createPFSNode(Folder, "/", false, nullptr, ReadWrite, lba, disk);
@@ -146,7 +146,7 @@ void PFS::format() {
     uint8_t* buffer = encodeSuperblock(superblock);
     print(" Done\n");
     print("Writing superblock to disk...");
-    disk->write28(lba, buffer); lba++;
+    disk->write28(1, buffer);
     print(" Done\n");
     print("Writing root folder to disk...");
     writePFSNode(root, lba, disk);

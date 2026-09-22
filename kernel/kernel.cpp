@@ -33,3 +33,9 @@ extern "C" void __cxa_pure_virtual() {}
 Hello. You've made it here.
 Congratulations.
 */
+
+/*
+R.I.P
+Pinky
+Summer, 2020 - Summer, 2026
+*/
