@@ -37,5 +37,5 @@ Congratulations.
 /*
 R.I.P
 Pinky
-Summer, 2020 - Summer, 2026
+2014 - 2026
 */
