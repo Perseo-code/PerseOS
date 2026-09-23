@@ -50,12 +50,14 @@ $(ISO_IMAGE): $(KERNEL_ELF)
 
 # ----- Execute -----
 run: $(ISO_IMAGE)
-	qemu-system-x86_64 -cdrom $(ISO_IMAGE) -no-reboot -d int
+	qemu-system-x86_64 -cdrom $(ISO_IMAGE) -drive file=disk.img,format=raw,if=ide -d int
 
 
 # ----- Clean -----
 clean:
 	rm -rf $(BUILD_DIR) $(ISO_DIR)/kernel.elf
 	rm -rf $(ISO_IMAGE)
+	rm -rf disk.img
+	qemu-img create -f raw disk.img 128M
 
 .PHONY: all run clean

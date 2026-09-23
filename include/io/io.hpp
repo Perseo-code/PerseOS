@@ -15,6 +15,7 @@ So, we move them
 #pragma once
 #include <stdint.hpp>
 
+extern volatile uint32_t irq0Count;
 
 struct Registers {
     uint32_t gs, fs, es, ds;

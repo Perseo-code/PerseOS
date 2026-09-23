@@ -1,5 +1,6 @@
 #pragma once
 #include <stdint.h>
+#include <drivers/vga/vga.hpp>
 namespace PIT {
     void init(uint16_t frequency);
 }

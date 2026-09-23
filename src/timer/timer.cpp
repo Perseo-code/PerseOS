@@ -1,5 +1,6 @@
 #include <timer/timer.hpp>
 #include <io/io.hpp>
+#include <string.hpp>
 volatile uint32_t globalTime = 0;
 volatile uint32_t localTimer = 0;
 void PIT::init(uint16_t frequency) {
@@ -13,7 +14,7 @@ void PIT::init(uint16_t frequency) {
     if (divisor > 0xFFFF)
         divisor = 0xFFFF;
     /*NOTE: How to compose a PIT configure byte
-    Channel: 0
+    Channel: 0  
     Access mode: low byte, then high byte
     Mode: 3 (square-wave generator)
     Counting: binary*/
@@ -28,6 +29,8 @@ void PIT::init(uint16_t frequency) {
 }
 
 void Time::millis() {
+    //VIDEO::print(hexToString(&globalTime));
+   // VIDEO::print(hexToString(&localTimer));
     globalTime++;
     localTimer++;
 }

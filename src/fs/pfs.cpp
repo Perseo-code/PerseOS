@@ -16,7 +16,7 @@ using namespace FS;
     ((uint32_t)(buf)[(idx) + 2] << 16) | \
     ((uint32_t)(buf)[(idx) + 3] << 24)   \
 )
-PFSNode* createPFSNode(Types type, const char* name, bool extension, PFSNode* parent, Mode mode, uint32_t &lba, ATA* disk) {
+PFSNode* createPFSNode(Types type, const char* name, bool extension, PFSNode* parent, Mode mode, uint32_t lba, ATA* disk) {
     PFSNode* result = (PFSNode*)kmalloc(sizeof(PFSNode)); 
     if (parent != nullptr) {
         result->has_children = false;
@@ -134,11 +134,11 @@ PFSSuperblock* decodeSuperblock(const uint8_t* metadata) {
 
 void PFS::format() {
     print("Starting format.\n");
-    lba = 2;
     print("Creating Superblock...");
-    superblock = createSuperBlock(lba, disk->getTotalSectors());
+    superblock = createSuperBlock(2, disk->getTotalSectors());
     print(" Done\n");
     print("Creating root...");
+    lba = 2;
     root = createPFSNode(Folder, "/", false, nullptr, ReadWrite, lba, disk);
     print(" Done\n");
     current = root;
@@ -151,20 +151,44 @@ void PFS::format() {
     print("Writing root folder to disk...");
     writePFSNode(root, lba, disk);
     print(" Done\n");
+    kfree(superblock);
+    kfree(root);
+    superblock = nullptr;
+    root = nullptr;
+    current = nullptr;
     lba++;
 }
 
 void PFS::mount() {
+    if (superblock != nullptr && root != nullptr && current != nullptr) {
+        print("Already mounted.\n");
+        return;
+    }
+    print("Starting mount\n");
     lba = 1;
     uint8_t* buffer = (uint8_t*)kmalloc(SECTOR_SIZE);
+    if (buffer == nullptr) {
+        return;
+    }
+    print("Reading superblock metadata...");
     disk->read28(lba, buffer);
+    print(" Done\n");
+    print("Decoding superblock...");
     superblock = decodeSuperblock(buffer);
+    print(" Done\n");
     if (superblock->magic != PFS_MAGIC) {superblock->valid = false; return;}
     lba++;
+    print("Reading root...");
     disk->read28(superblock->root_lba, buffer);
+    print(" Done\n");
+    print("Decoding root...");
     root = decodePFSNode(buffer);
+    print(" Done\n");
     current = root;
+    print("Loading root folder to RAM...");
     loadPFSNode(root, disk);
+    print(" Done\n");
+    print("Mounted successfully!\n");
 }
 
 void PFS::create(const char* path, Mode mode) {

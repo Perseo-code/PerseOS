@@ -67,6 +67,9 @@ private:
         Time::resetTimer();
         // We only break out when BUSY clears AND DATA REQUEST becomes active.
         while (Time::getTimer() < DEFAULT_ATA_TIMEOUT) {
+            print("Timer has fired = ");
+            print(intToString(irq0Count));
+            print(" times\n");  
             uint8_t status = inb(ATA_CMD_PORT);
             print("Started loop\n");
             if (status & ATA_SR_DF) {
